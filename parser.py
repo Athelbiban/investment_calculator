@@ -1,8 +1,8 @@
-from bs4 import BeautifulSoup
 import csv
 import os
 import re
 
+from bs4 import BeautifulSoup
 from pathlib import Path
 from directing import get_directory
 
@@ -82,6 +82,8 @@ def main():
 
     for f in out_file_1, out_file_2:
         Path(f).unlink(missing_ok=True)
+
+    os.makedirs('files', exist_ok=True)
 
     date: list[str] = ['']  # format date '2022-01-31'
     for path in paths:
