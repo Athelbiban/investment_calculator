@@ -87,7 +87,7 @@ def get_stock_data_dict(tickers: list, transactions_executed):
                 share_amount += amount_new
                 share_total_cost += share_total_cost_new
                 share_commission += share_commission_new
-                share_price_avg = round((share_total_cost + share_commission) / share_amount, round_numb)
+                share_price_avg = round((share_total_cost + share_commission) / share_amount, round_numb) # некорректрый расчёт средней цены для облигаций из-за неучтённого НКД !исправить
 
             elif share_type == 'Продажа':
                 share_amount -= amount_new
@@ -176,7 +176,7 @@ def get_coupon_data_dict(tickers: list):
 
 def main():
 
-    mail_main()
+    # mail_main()
     parser_main()
 
     portfolio = pd.read_csv('files/portfolio.csv')
@@ -215,7 +215,7 @@ def main():
     main_df['Средняя цена'] = main_df['Средняя цена']
     main_df['Текущая цена'] = round((main_df['Котировки'] + main_df['НКД']) * main_df['Количество'], 2)
     main_df['P/L, руб.'] = round(main_df['Текущая цена'] - main_df['Средняя цена'] * main_df['Количество'], 2)
-    main_df['P/L, %'] = (main_df['Котировки'] * 100 / main_df['Средняя цена'] - 100).round(2)
+    main_df['P/L, %'] = (main_df['Текущая цена'] * 100 / main_df['Средняя цена'] - 100).round(2)
 
     main_df.to_csv(path_or_buf='files/portfolio_main.csv', index_label=False)
 
