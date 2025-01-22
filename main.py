@@ -87,7 +87,7 @@ def get_stock_data_dict(tickers: list, transactions_executed):
                 share_amount += amount_new
                 share_total_cost += share_total_cost_new
                 share_commission += share_commission_new
-                share_price_avg = round((share_total_cost + share_commission) / share_amount, round_numb) # некорректрый расчёт средней цены для облигаций из-за неучтённого НКД !исправить
+                share_price_avg = round((share_total_cost + share_commission) / share_amount, round_numb)
 
             elif share_type == 'Продажа':
                 share_amount -= amount_new
@@ -193,8 +193,8 @@ def main():
     ticker_list = list(transactions_executed['Код'].unique())
 
     fix_split(ticker_list, transactions, transactions_executed)
-    share_amount_dict, share_price_dict, share_commission_dict = get_stock_data_dict(ticker_list, transactions_executed)
     coupon_dict, bond_ticker_list = get_coupon_data_dict(ticker_list)
+    share_amount_dict, share_price_dict, share_commission_dict = get_stock_data_dict(ticker_list, transactions_executed)
     last_prices_dict = get_last_prices_dict(ticker_list, bond_ticker_list)
 
     portfolio_dict = {
@@ -215,7 +215,7 @@ def main():
     main_df['Средняя цена'] = main_df['Средняя цена']
     main_df['Текущая цена'] = round((main_df['Котировки'] + main_df['НКД']) * main_df['Количество'], 2)
     main_df['P/L, руб.'] = round(main_df['Текущая цена'] - main_df['Средняя цена'] * main_df['Количество'], 2)
-    main_df['P/L, %'] = (main_df['Текущая цена'] * 100 / main_df['Средняя цена'] - 100).round(2)
+    main_df['P/L, %'] = ((main_df['Котировки'] + main_df['НКД']) * 100 / main_df['Средняя цена'] - 100).round(2)
 
     main_df.to_csv(path_or_buf='files/portfolio_main.csv', index_label=False)
 
