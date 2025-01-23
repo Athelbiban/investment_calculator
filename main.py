@@ -136,7 +136,7 @@ def get_last_prices_dict(tickers: list, bond_tickers: list):
             for line in value:
                 if ticker == line[0]:
 
-                    if ticker in bond_tickers:
+                    if ticker in bond_tickers and line[1]:
                         last_prices_dict[ticker] = round(line[1] * 10, 2)
                     else:
                         last_prices_dict[ticker] = line[1]
@@ -151,7 +151,6 @@ def get_last_prices_dict(tickers: list, bond_tickers: list):
 
 def get_coupon_data_dict(tickers: list):
 
-    bond_ticker_list = []
     coupon_dict = {}
     for id_trading in ['TQOB', 'TQCB', 'TQIR']:
         url = (f"https://iss.moex.com/iss/engines/stock/markets/bonds/boards/{id_trading}/securities.json"
@@ -169,9 +168,8 @@ def get_coupon_data_dict(tickers: list):
                 line = data[i]
                 if ticker == line[0]:
                     coupon_dict[ticker] = line[1]
-                    bond_ticker_list.append(ticker)
 
-    return coupon_dict, bond_ticker_list
+    return coupon_dict
 
 
 def main():
@@ -193,9 +191,9 @@ def main():
     ticker_list = list(transactions_executed['Код'].unique())
 
     fix_split(ticker_list, transactions, transactions_executed)
-    coupon_dict, bond_ticker_list = get_coupon_data_dict(ticker_list)
+    coupon_dict = get_coupon_data_dict(ticker_list)
     share_amount_dict, share_price_dict, share_commission_dict = get_stock_data_dict(ticker_list, transactions_executed)
-    last_prices_dict = get_last_prices_dict(ticker_list, bond_ticker_list)
+    last_prices_dict = get_last_prices_dict(ticker_list, list(coupon_dict.keys()))
 
     portfolio_dict = {
         'Котировки': last_prices_dict,
