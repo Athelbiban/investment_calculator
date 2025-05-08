@@ -174,7 +174,12 @@ def get_coupon_data_dict(tickers: list):
 
 def main():
 
-    # mail_main()
+    resp = input('Обновить отчёты брокера?(y/n): ').strip()
+    if resp == ('y' or 'Y'):
+        mail_main()
+    elif resp != ('n' or 'N'):
+        raise Exception('Неверный ответ. Повторите попытку.')
+
     parser_main()
 
     portfolio = pd.read_csv('files/portfolio.csv')
