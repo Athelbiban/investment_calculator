@@ -48,8 +48,8 @@ def fix_split(ticker_list, transactions, transactions_executed):
 def get_stock_data_dict(tickers: list, transactions_executed):
 
     round_numb_3_list = ['LKOH', 'MGNT']
-    round_numb_4_list = ['IRAO', 'MOEX', 'YDEX', 'SBMM']
-    round_numb_5_list = ['HYDR', 'AFKS']
+    round_numb_4_list = ['MOEX', 'YDEX']
+    round_numb_5_list = ['HYDR', 'AFKS', 'IRAO', 'SBMM']
     round_numb_6_list = [
         'GAZP', 'MTSS', 'NVTK', 'ROSN', 'SBER', 'CHMF',
         'SNGS', 'SBGD', 'SBMX', 'AFKS', 'AFLT', 'RTKM'
@@ -87,22 +87,26 @@ def get_stock_data_dict(tickers: list, transactions_executed):
                 share_amount += amount_new
                 share_total_cost += share_total_cost_new
                 share_commission += share_commission_new
-                share_price_avg = round((share_total_cost + share_commission) / share_amount, round_numb)
+                share_price_avg = (share_total_cost + share_commission) / share_amount
 
             elif share_type == 'Продажа':
                 share_amount -= amount_new
-                share_total_cost = share_amount * share_price_avg
 
                 if share_amount > 0:
+                    share_total_cost = share_amount * (share_price_avg +
+                                                       share_commission_new /
+                                                       share_amount)
                     share_commission += share_commission_new
+                    share_price_avg = (share_total_cost + share_commission) / share_amount
                 else:
                     share_commission = 0
+                    share_total_cost = 0
 
             else:
                 raise Exception('Неверный вид транзакции')
 
         share_amount_dict[ticker] = share_amount
-        share_price_dict[ticker] = share_price_avg
+        share_price_dict[ticker] = round(share_price_avg, round_numb)
         share_commission_dict[ticker] = round(share_commission, 2)
 
     return share_amount_dict, share_price_dict, share_commission_dict
