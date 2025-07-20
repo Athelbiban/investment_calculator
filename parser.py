@@ -65,10 +65,18 @@ def write_file(file, output_file, header, key_words, reg, flag1, date=None):
                     flag1 = False
 
                 if string and string[0].text not in key_words:
+                    # Поиск пробелов в числе, например 1 504.24
+                    reg1 = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
                     if date:
-                        writer.writerow([elem.text.replace(' ', '') for elem in string] + [date])
+                        writer.writerow([re.sub(
+                            reg1,
+                            elem.text.replace(' ', ''),
+                            elem.text) for elem in string] + [date])
                     else:
-                        writer.writerow(elem.text.replace(' ', '') for elem in string)
+                        writer.writerow(re.sub(
+                            reg1,
+                            elem.text.replace(' ', ''),
+                            elem.text) for elem in string)
 
 
 def parse_directory(directory): return [f'{directory}{node}' for node in sorted(os.listdir(directory))]
