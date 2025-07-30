@@ -42,19 +42,26 @@ def get_transactions(input_files, output_file):
         flag1 = False
 
 
-def write_file(file, output_file, header, key_words, reg, flag1, date=None):
+def write_file(file, output_file, header, key_words, reg_start, flag1,
+               date=None):
 
-    with open(file, encoding='utf-8') as inf, \
-            open(output_file, 'a', encoding='utf-8', newline='') as ouf:
+    # Поиск пробелов в числе, например 1 504.24
+    reg1 = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
+    reg_finish_1 = re.compile(r'Итого по Основному рынку, RUB')
+    reg_finish_2 = re.compile(r'Итого, RUB')
+
+    with (open(file, encoding='utf-8') as inf, \
+            open(output_file, 'a', encoding='utf-8', newline='') as ouf):
 
         writer = csv.writer(ouf)
-        soup = BeautifulSoup(inf.read(), 'html.parser').select('tr, p')
+        soup = BeautifulSoup(inf.read(), 'lxml').select('tr, p')
         flag2 = False
         for string in soup:
 
-            if re.search(reg, string.text):
+            if re.search(reg_start, string.text):
                 flag2 = True
-            elif re.search('Итого', string.text):
+            elif re.search(reg_finish_1, string.text) \
+                or re.search(reg_finish_2, string.text):
                 flag2 = False
 
             if flag2:
@@ -65,8 +72,6 @@ def write_file(file, output_file, header, key_words, reg, flag1, date=None):
                     flag1 = False
 
                 if string and string[0].text not in key_words:
-                    # Поиск пробелов в числе, например 1 504.24
-                    reg1 = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
                     if date:
                         writer.writerow([re.sub(
                             reg1,

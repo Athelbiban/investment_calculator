@@ -224,7 +224,7 @@ def main():
     main_df['P/L, руб.'] = round(main_df['Текущая цена'] - main_df['Средняя цена'] * main_df['Количество'], 2)
     main_df['P/L, %'] = ((main_df['Котировки'] + main_df['НКД']) * 100 / main_df['Средняя цена'] - 100).round(2)
 
-    main_df.to_csv(path_or_buf='files/portfolio_main.csv', index_label=False)
+    main_df.to_csv(path_or_buf='files/portfolio_main.csv')
 
 
 if __name__ == '__main__':
