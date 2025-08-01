@@ -1,5 +1,5 @@
 import psycopg2
-from passwd.config_DB import dbname, user, password, url
+from passwd.config_DB import dbname, user, password, url_transactions
 
 
 def create_transactions_table():
@@ -73,7 +73,7 @@ def create_transactions_table():
                     transaction_number,
                     comment,
                     status)
-                FROM '{url}'
+                FROM '{url_transactions}'
                 DELIMITER ','
                 CSV HEADER;
 

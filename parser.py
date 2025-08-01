@@ -7,7 +7,7 @@ from pathlib import Path
 from directing import get_directory
 
 
-def get_portfolio(input_files, output_file, date=None):
+def get_portfolio(input_files, output_file, header_flag=True, date=None):
 
     header = [
         'Наименование', 'ISIN', 'Валюта', 'Количество_нп', 'Номинал_нп',
@@ -16,16 +16,20 @@ def get_portfolio(input_files, output_file, date=None):
         'Стоимость_изп', 'Зачисления', 'Списания', 'Остаток', 'Дата'
     ]
 
-    key_words = ['', 'Основной рынок', 'Наименование', 'Площадка: Фондовый рынок', '1', 'Блокировано']
-    reg = re.compile('Портфель Ценных Бумаг')
+    reg_table_start = re.compile(r'Портфель Ценных Бумаг')
+    reg_table_finish = re.compile(r'Итого по Основному рынку, RUB')
+    keywords_list = [
+        '', 'Основной рынок', 'Наименование',
+        'Площадка: Фондовый рынок', '1', 'Блокировано'
+    ]
 
-    flag1 = True
     for file, date in zip(input_files, date):
-        write_file(file, output_file, header, key_words, reg, flag1, date)
-        flag1 = False
+        write_file(file, output_file, header, reg_table_start,
+                   reg_table_finish, keywords_list, header_flag, date)
+        header_flag = False
 
 
-def get_transactions(input_files, output_file):
+def get_transactions(input_files, output_file, header_flag=True):
 
     header = [
         'Дата заключения', 'Дата расчетов', 'Время заключения', 'Наименование',
@@ -33,65 +37,77 @@ def get_transactions(input_files, output_file):
         'Комиссия Брокера', 'Комиссия Биржи', 'Номер сделки', 'Комментарий', 'Статус'
     ]
 
-    key_words = ['Дата заключения', 'Площадка: Фондовый рынок', '1']
+    reg_table_start = re.compile(r'Сделки купли/продажи')
+    reg_table_finish = re.compile(r'Итого, RUB')
+    keywords_list = ['Дата заключения', 'Площадка: Фондовый рынок', '1']
 
-    reg = re.compile('Сделки купли/продажи')
-    flag1 = True
     for file in input_files:
-        write_file(file, output_file, header, key_words, reg, flag1)
-        flag1 = False
+        write_file(file, output_file, header, reg_table_start,
+                   reg_table_finish, keywords_list, header_flag)
+        header_flag = False
 
 
-def write_file(file, output_file, header, key_words, reg_start, flag1,
-               date=None):
+def get_cashflow(input_files, output_file, header_flag=True):
+
+    header = [
+        'Дата', 'Торговая площадка', 'Описание операции',
+        'Валюта', 'Сумма зачисления', 'Сумма списания'
+    ]
+
+    reg_table_start = re.compile(r'Движение денежных средств за период')
+    reg_table_finish = re.compile(r'Итого, RUB')
+    keywords_list = ['Дата', '1']
+
+    for file in input_files:
+        write_file(file, output_file, header, reg_table_start,
+                   reg_table_finish, keywords_list, header_flag)
+        header_flag = False
+
+
+def write_file(file, output_file, header, reg_table_start, reg_table_finish,
+               keywords_list, header_flag, date=None):
 
     # Поиск пробелов в числе, например '1 504.24'
-    reg1 = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
-    reg_finish_1 = re.compile(r'Итого по Основному рынку, RUB')
-    reg_finish_2 = re.compile(r'Итого, RUB')
+    reg = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
 
     with (open(file, encoding='utf-8') as inf, \
             open(output_file, 'a', encoding='utf-8', newline='') as ouf):
 
         writer = csv.writer(ouf)
         soup = BeautifulSoup(inf.read(), 'lxml').select('tr, p')
-        flag2 = False
+        table_flag = False
         for string in soup:
 
-            if re.search(reg_start, string.text):
-                flag2 = True
-            elif re.search(reg_finish_1, string.text) \
-                or re.search(reg_finish_2, string.text):
-                flag2 = False
+            if re.search(reg_table_start, string.text):
+                table_flag = True
+            elif re.search(reg_table_finish, string.text):
+                table_flag = False
 
-            if flag2:
+            if table_flag:
                 string = string.find_all('td')
 
-                if flag1:
+                if header_flag:
                     writer.writerow(header)
-                    flag1 = False
+                    header_flag = False
 
-                if string and string[0].text not in key_words:
+                if string and string[0].text not in keywords_list:
                     if date:
-                        writer.writerow([re.sub(
-                            reg1,
-                            elem.text.replace(' ', ''),
-                            elem.text) for elem in string] + [date])
+                        writer.writerow([re.sub(reg, elem.text.replace(' ', ''), elem.text)
+                                         for elem in string] + [date])
                     else:
-                        writer.writerow(re.sub(
-                            reg1,
-                            elem.text.replace(' ', ''),
-                            elem.text) for elem in string)
+                        writer.writerow(re.sub(reg, elem.text.replace(' ', ''), elem.text)
+                                        for elem in string)
 
 
-def parse_directory(directory): return [f'{directory}{node}' for node in sorted(os.listdir(directory))]
+def parse_directory(directory):
+    return [f'{directory}{node}' for node in sorted(os.listdir(directory))]
 
 
 def main():
 
     directory = get_directory()
     paths = parse_directory(directory)
-    out_file_1, out_file_2 = ['files/portfolio.csv', 'files/transactions.csv']
+    out_file_1, out_file_2 = ['files/cashflow.csv', 'files/transactions.csv']
 
     for f in out_file_1, out_file_2:
         Path(f).unlink(missing_ok=True)
@@ -109,7 +125,7 @@ def main():
         else:
             raise Exception('Неверное имя файла: ' + path)
 
-    get_portfolio(paths, out_file_1, date)
+    get_cashflow(paths, out_file_1)
     get_transactions(paths, out_file_2)
 
 

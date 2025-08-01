@@ -186,8 +186,6 @@ def main():
 
     parser_main()
 
-    portfolio = pd.read_csv('files/portfolio.csv')
-    portfolio['Дата'] = portfolio['Дата'].astype('datetime64[ns]')
     transactions = pd.read_csv('files/transactions.csv') \
         .drop_duplicates(['Дата заключения', 'Время заключения', 'Статус', 'Номер сделки'])
     transactions['Дата заключения'] = \
