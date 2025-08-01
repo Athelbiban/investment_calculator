@@ -45,7 +45,7 @@ def get_transactions(input_files, output_file):
 def write_file(file, output_file, header, key_words, reg_start, flag1,
                date=None):
 
-    # Поиск пробелов в числе, например 1 504.24
+    # Поиск пробелов в числе, например '1 504.24'
     reg1 = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
     reg_finish_1 = re.compile(r'Итого по Основному рынку, RUB')
     reg_finish_2 = re.compile(r'Итого, RUB')
