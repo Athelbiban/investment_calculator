@@ -88,10 +88,10 @@ def create_securities_movement():
                 '''
                            )
 
-            print("[INFO] Таблица создана или существовала")
+            print("[INFO] Таблица securities_movement создана или существовала")
 
     except Exception as _ex:
-        print("[INFO] Ошибка в работе в PostgreSQL", _ex)
+        print("[INFO] Ошибка в работе PostgreSQL", _ex)
 
     finally:
         if conn:

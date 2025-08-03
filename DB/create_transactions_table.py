@@ -99,10 +99,10 @@ def create_transactions_table():
                 '''
             )
 
-            print("[INFO] Таблица создана или существовала")
+            print("[INFO] Таблица transactions создана или существовала")
 
     except Exception as _ex:
-        print("[INFO] Ошибка в работе в PostgreSQL", _ex)
+        print("[INFO] Ошибка в работе PostgreSQL", _ex)
 
     finally:
         if conn:
