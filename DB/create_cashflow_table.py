@@ -24,20 +24,10 @@ def create_cashflow_table():
                     currency VARCHAR(10),
                     transfer_amount DECIMAL(16, 4),
                     debit_amount DECIMAL(16, 4),
-                    primary key (date, description_operation, trading_platform)
+                    primary key (id)
                 );
 
-                create temp table if not exists temp_cashflow as
-                SELECT
-                    date,
-                    trading_platform,
-                    description_operation,
-                    currency,
-                    transfer_amount,
-                    debit_amount
-                FROM cashflow;
-
-                COPY temp_cashflow
+                copy cashflow
                 (
                     date,
                     trading_platform,
@@ -46,21 +36,26 @@ def create_cashflow_table():
                     transfer_amount,
                     debit_amount
                 )
-                FROM '{url_cashflow}'
+                FROM 'g:\\test\\cashflow.csv'
                 DELIMITER ','
                 CSV header;
 
-                insert into cashflow
-                (
-                    date,
-                    trading_platform,
-                    description_operation,
-                    currency,
-                    transfer_amount,
-                    debit_amount
-                )
-                select * from temp_cashflow
-                on conflict do nothing;
+                -- удаляем дубли если их меньше 4, иначе оставляем 2 экз.
+                with duplicates as (
+                    select id, row_number() over (
+                        partition by date, 
+                        trading_platform,
+                        description_operation,
+                        currency,
+                        transfer_amount,
+                        debit_amount
+                        order by id) as rnum 
+                    from cashflow
+                    )
+                delete from cashflow 
+                where id in (
+                    select id from duplicates where rnum > 1 and rnum < 4
+                    );
                 '''
                            )
 
