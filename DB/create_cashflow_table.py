@@ -36,7 +36,7 @@ def create_cashflow_table():
                     transfer_amount,
                     debit_amount
                 )
-                FROM 'g:\\test\\cashflow.csv'
+                FROM '{url_cashflow}'
                 DELIMITER ','
                 CSV header;
 
