@@ -4,6 +4,7 @@ import requests
 import json
 from loader_attachments import main as mail_main
 from parser import main as parser_main
+from app.create_DB import recreate_database
 
 
 def fix_split(ticker_list, transactions, transactions_executed):
@@ -181,10 +182,30 @@ def main():
     resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
     if resp == 'y':
         mail_main()
+        print('Обновление отчетов завершено')
+    elif resp == 'n':
+        print('Отчёты не обновлены')
     elif resp != 'n':
-        raise Exception('Неверный ответ. Повторите попытку')
+        raise Exception('Неверный ответ. Отчёты не обновлены')
 
-    parser_main()
+    resp1 = input('Обновить csv-файлы?(y/n): ').strip().lower()
+    if resp1 == 'y':
+        parser_main()
+        print('Обновление файлов-csv завершено')
+    elif resp1 == 'n':
+        print('Файлы-csv не обновлены')
+    elif resp1 != 'n':
+        raise Exception('Неверный ответ. файлы-csv не обновлены')
+
+    resp2 = (input('Обновить базу данных?(y/n): ')
+             .strip().lower())
+    if resp2 == 'y':
+        recreate_database()
+        print('База обновлена')
+    elif resp2 == 'n':
+        print('База не обновлена')
+    else:
+        raise Exception('Неверный ответ. База не обновлена. Обновите в ручную')
 
     transactions = pd.read_csv('files/transactions.csv') \
         .drop_duplicates(['Дата заключения', 'Время заключения', 'Статус', 'Номер сделки'])
