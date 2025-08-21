@@ -177,35 +177,7 @@ def get_coupon_data_dict(tickers: list):
     return coupon_dict
 
 
-def main():
-
-    resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
-    if resp == 'y':
-        mail_main()
-        print('Обновление отчетов завершено')
-    elif resp == 'n':
-        print('Отчёты не обновлены')
-    elif resp != 'n':
-        raise Exception('Неверный ответ. Отчёты не обновлены')
-
-    resp1 = input('Обновить csv-файлы?(y/n): ').strip().lower()
-    if resp1 == 'y':
-        parser_main()
-        print('Обновление файлов-csv завершено')
-    elif resp1 == 'n':
-        print('Файлы-csv не обновлены')
-    elif resp1 != 'n':
-        raise Exception('Неверный ответ. файлы-csv не обновлены')
-
-    resp2 = (input('Обновить базу данных?(y/n): ')
-             .strip().lower())
-    if resp2 == 'y':
-        recreate_database()
-        print('База обновлена')
-    elif resp2 == 'n':
-        print('База не обновлена')
-    else:
-        raise Exception('Неверный ответ. База не обновлена. Обновите в ручную')
+def portfolio_main():
 
     transactions = pd.read_csv('files/transactions.csv') \
         .drop_duplicates(['Дата заключения', 'Время заключения', 'Статус', 'Номер сделки'])
@@ -244,6 +216,38 @@ def main():
     main_df['P/L, %'] = ((main_df['Котировки'] + main_df['НКД']) * 100 / main_df['Средняя цена'] - 100).round(2)
 
     main_df.to_csv(path_or_buf='files/portfolio_main.csv')
+
+
+def main():
+
+    resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
+    if resp == 'y':
+        mail_main()
+        print('Обновление отчетов завершено')
+    elif resp == 'n':
+        print('Отчёты не обновлены')
+    elif resp != 'n':
+        raise Exception('Неверный ответ. Отчёты не обновлены')
+
+    resp1 = input('Обновить csv-файлы?(y/n): ').strip().lower()
+    if resp1 == 'y':
+        parser_main()
+        portfolio_main()
+        print('Обновление файлов-csv завершено')
+    elif resp1 == 'n':
+        print('Файлы-csv не обновлены')
+    elif resp1 != 'n':
+        raise Exception('Неверный ответ. файлы-csv не обновлены')
+
+    resp2 = (input('Обновить базу данных?(y/n): ')
+             .strip().lower())
+    if resp2 == 'y':
+        recreate_database()
+        print('База обновлена')
+    elif resp2 == 'n':
+        print('База не обновлена')
+    else:
+        raise Exception('Неверный ответ. База не обновлена. Обновите в ручную')
 
 
 if __name__ == '__main__':
