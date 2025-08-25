@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
-from app.config import get_db_url
+from ORM.config import get_db_url
 
 
 def insert_transactions():

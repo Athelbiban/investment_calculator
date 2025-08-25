@@ -11,8 +11,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from decimal import Decimal
 from datetime import date, time
 
-from app.database import Base
-from app.config import get_db_url
+from ORM.database import Base
+from ORM.config import get_db_url
 
 
 db_url = get_db_url()

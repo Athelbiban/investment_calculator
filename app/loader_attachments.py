@@ -2,7 +2,7 @@ import imaplib
 import email
 import base64
 import re
-import passwd.data as dt
+import passwd.config_mail as dt
 
 from directing import get_directory
 

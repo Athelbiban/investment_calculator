@@ -1,5 +1,5 @@
-from app.database import Base
-from app.models import engine, Transaction, Cashflow
+from ORM.database import Base
+from ORM.models import engine, Transaction, Cashflow
 
 
 def drop_tables():

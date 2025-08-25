@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 import requests
 import json
-from loader_attachments import main as mail_main
-from parser import main as parser_main
-from app.create_DB import recreate_database
+from app.loader_attachments import main as mail_main
+from app.parser import main as parser_main
+from ORM.create_DB import recreate_database
 
 
 def fix_split(ticker_list, transactions, transactions_executed):

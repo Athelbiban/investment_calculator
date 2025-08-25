@@ -115,14 +115,14 @@ def main():
 
     directory: str = get_directory()
     paths: list[str] = parse_directory(directory)
-    out_file_1 = 'files/transactions.csv'
-    out_file_2 = 'files/cashflow.csv'
-    out_file_3 = 'files/securities_move.csv'
+    out_file_1 = '../files/transactions.csv'
+    out_file_2 = '../files/cashflow.csv'
+    out_file_3 = '../files/securities_move.csv'
 
     for f in out_file_1, out_file_2, out_file_3:
         Path(f).unlink(missing_ok=True)
 
-    os.makedirs('files', exist_ok=True)
+    os.makedirs('../files', exist_ok=True)
 
     get_transactions(paths, out_file_1)
     get_cashflow(paths, out_file_2)
