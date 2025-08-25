@@ -4,7 +4,7 @@ import base64
 import re
 import passwd.config_mail as dt
 
-from directing import get_directory
+from app.directing import get_directory
 
 
 def get_mail_attachments(imap, directory, files_extension='.html'):

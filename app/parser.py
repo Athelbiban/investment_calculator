@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup, element
 from pathlib import Path
-from directing import get_directory
+from app.directing import get_directory
 
 
 def get_transactions(input_files: list[str], output_file: str,

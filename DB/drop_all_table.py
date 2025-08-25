@@ -5,6 +5,7 @@ from passwd.config_DB import dbname, user, password
 def main():
 
     conn = psycopg2.connect(
+
         database=dbname,
         user=user,
         password=password

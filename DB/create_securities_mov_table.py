@@ -1,19 +1,14 @@
 import psycopg2
-from passwd.config_DB import dbname, user, password, url_securities_move
+from passwd.config_DB import connect_attr
+from passwd.config_URL_DB import url_securities_move
 
 
 def create_securities_movement():
 
-    conn = psycopg2.connect(
-        database=dbname,
-        user=user,
-        password=password
-    )
-    conn.autocommit = True
-
-    try:
+    with psycopg2.connect(connect_attr()) as conn:
         with conn.cursor() as cursor:
 
+            conn.autocommit = True
             cursor.execute(f'''
                 CREATE table if not exists securities_movement
                 (
@@ -88,15 +83,7 @@ def create_securities_movement():
                 '''
                            )
 
-            print("[INFO] Таблица securities_movement создана или существовала")
-
-    except Exception as _ex:
-        print("[INFO] Ошибка в работе PostgreSQL", _ex)
-
-    finally:
-        if conn:
-            conn.close()
-            print("[INFO] PostgreSQL соединение закрыто")
+    print("[INFO] Таблица securities_movement создана или существовала")
 
 
 if __name__ == '__main__':

@@ -1,19 +1,14 @@
 import psycopg2
-from passwd.config_DB import dbname, user, password, url_cashflow
+from passwd.config_DB import connect_attr
+from passwd.config_URL_DB import url_cashflow
 
 
 def create_cashflow_table():
 
-    conn = psycopg2.connect(
-        database=dbname,
-        user=user,
-        password=password
-    )
-    conn.autocommit = True
-
-    try:
+    with psycopg2.connect(connect_attr()) as conn:
         with conn.cursor() as cursor:
 
+            conn.autocommit = True
             cursor.execute(f'''
                 CREATE table if not exists cashflow
                 (
@@ -59,15 +54,8 @@ def create_cashflow_table():
                 '''
                            )
 
-            print("[INFO] Таблица cashflow создана или существовала")
+    print("[INFO] Таблица cashflow создана или существовала")
 
-    except Exception as _ex:
-        print("[INFO] Ошибка в работе PostgreSQL", _ex)
-
-    finally:
-        if conn:
-            conn.close()
-            print("[INFO] PostgreSQL соединение закрыто")
 
 if __name__ == '__main__':
     create_cashflow_table()

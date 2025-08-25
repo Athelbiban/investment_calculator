@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import requests
 import json
+
 from app.loader_attachments import main as mail_main
 from app.parser import main as parser_main
 from ORM.create_DB import recreate_database
