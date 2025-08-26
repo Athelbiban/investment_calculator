@@ -1,6 +1,6 @@
 import os
 import platform
-from passwd.directories import MyDirectory
+from passwd.directories import LINUX1, WINDOWS1, WINDOWS2
 
 
 def get_directory():
@@ -8,10 +8,10 @@ def get_directory():
     system = platform.system()
 
     if system == 'Linux':
-        directory = MyDirectory.LINUX1
+        directory = LINUX1
     elif system == 'Windows':
-        dir1 = MyDirectory.WINDOWS1
-        dir2 = MyDirectory.WINDOWS2
+        dir1 = WINDOWS1
+        dir2 = WINDOWS2
 
         if os.path.isdir(dir1):
             directory = dir1

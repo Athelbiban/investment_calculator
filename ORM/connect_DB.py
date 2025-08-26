@@ -1,14 +1,14 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from passwd.config_DB import ConfigDatabase
+from passwd.config_DB import DBNAME, USER, PASSWORD, HOST, PORT
 
 
 class Settings(BaseSettings):
-    DB_NAME: str = ConfigDatabase.DBNAME
-    DB_USER: str = ConfigDatabase.USER
-    DB_PASSWORD: str = ConfigDatabase.PASSWORD
-    DB_HOST: str = ConfigDatabase.HOST
-    DB_PORT: int = ConfigDatabase.PORT
+    DB_NAME: str = DBNAME
+    DB_USER: str = USER
+    DB_PASSWORD: str = PASSWORD
+    DB_HOST: str = HOST
+    DB_PORT: int = PORT
     model_config = SettingsConfigDict(
         env_file=os.path.join(
             os.path.dirname(os.path.abspath(__file__)), '..', '.env'
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     )
 
 
-def get_db_url():
+def get_db_url() -> str:
     settings = Settings()
 
     return (f"postgresql+psycopg2://{settings.DB_USER}:{settings.DB_PASSWORD}"

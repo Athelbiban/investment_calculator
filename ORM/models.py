@@ -12,7 +12,7 @@ from decimal import Decimal
 from datetime import date, time
 
 from ORM.database import Base
-from ORM.config import get_db_url
+from ORM.connect_DB import get_db_url
 
 
 db_url = get_db_url()

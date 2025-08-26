@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 
 from ORM.drop_dudplicates_cashflow import drop_duplicates_cashflow
-from ORM.config import get_db_url
+from ORM.connect_DB import get_db_url
 
 
 def insert_cashflow():

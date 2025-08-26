@@ -1,5 +1,5 @@
 import psycopg2
-from passwd.config_DB import connect_attr
+from connect_DB import connect_attr
 from passwd.config_URL_DB import url_cashflow
 
 

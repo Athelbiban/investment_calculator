@@ -2,7 +2,7 @@ import psycopg2
 import re
 
 from decimal import Decimal
-from passwd.config_DB import connect_attr
+from app.connect_DB import connect_attr
 
 
 def get_redeemed_bonds():

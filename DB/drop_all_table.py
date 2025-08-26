@@ -1,17 +1,10 @@
 import psycopg2
-from passwd.config_DB import dbname, user, password
+from connect_DB import connect_attr
 
 
 def main():
 
-    conn = psycopg2.connect(
-
-        database=dbname,
-        user=user,
-        password=password
-    )
-
-    try:
+    with psycopg2.connect(connect_attr()) as conn:
         with conn.cursor() as cursor:
 
             cursor.execute(f'''
@@ -22,16 +15,7 @@ def main():
             )
 
         conn.commit()
-
         print("[INFO] Таблицы успешно удалены")
-
-    except Exception as _ex:
-        print("[INFO] Ошибка в работе PostgreSQL", _ex)
-
-    finally:
-        if conn:
-            conn.close()
-            print("[INFO] PostgreSQL соединение закрыто")
 
 
 if __name__ == '__main__':
