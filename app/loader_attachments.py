@@ -5,6 +5,7 @@ import re
 import passwd.config_mail as dt
 
 from app.directing import get_directory
+from app.animation import start_animation_func, stop_animation_func
 
 
 def get_mail_attachments(imap, directory, files_extension='.html'):
@@ -30,12 +31,16 @@ def main():
     if dt.MAIL_PASS:
         mail_pass = dt.MAIL_PASS
     else:
+        stop_animation_func()
         mail_pass = input('MAIL_PASS: ')
+        start_animation_func()
 
     if dt.USERNAME:
         username = dt.USERNAME
     else:
+        stop_animation_func()
         username = input('USERNAME: ')
+        start_animation_func()
 
     directory = get_directory()
     imap_server = 'imap.mail.ru'

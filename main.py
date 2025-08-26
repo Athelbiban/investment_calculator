@@ -6,7 +6,7 @@ import json
 from app.loader_attachments import main as mail_main
 from app.parser import main as parser_main
 from ORM.create_DB import recreate_database
-from app.animation import start_animation, stop_animation_func
+from app.animation import start_animation_func, stop_animation_func
 
 
 def fix_split(ticker_list, transactions, transactions_executed):
@@ -222,9 +222,10 @@ def portfolio_main():
 
 def main():
 
+    print('investment_calculator v0.2.0 by Stas Vostrov\n')
     resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
     if resp == 'y':
-        start_animation()
+        start_animation_func()
         try:
             mail_main()
         finally:
@@ -237,7 +238,7 @@ def main():
 
     resp1 = input('Обновить csv-файлы?(y/n): ').strip().lower()
     if resp1 == 'y':
-        start_animation()
+        start_animation_func()
         try:
             parser_main()
             portfolio_main()
@@ -252,7 +253,7 @@ def main():
     resp2 = (input('Обновить базу данных?(y/n): ')
              .strip().lower())
     if resp2 == 'y':
-        start_animation()
+        start_animation_func()
         try:
             recreate_database()
         finally:
@@ -262,6 +263,8 @@ def main():
         print('База не обновлена')
     else:
         print('Неверный ответ. База не обновлена. Обновите в ручную')
+
+    input('\nНажмите Enter для выхода...')
 
 
 if __name__ == '__main__':
