@@ -31,11 +31,11 @@ def insert_transactions():
 
     try:
         df.to_sql('transactions', engine, if_exists='append', index=False)
-        print("[INFO] Данные успешно загружены в таблицу transactions!")
+        # print("\n[INFO] Данные успешно загружены в таблицу transactions!")
     except IntegrityError as e:
-        print(f"[INFO] Произошла ошибка целостности данных: {e}")
+        print(f"\n[INFO] Произошла ошибка целостности данных: {e}")
     except Exception as ex:
-        print(f"[INFO] Произошла ошибка: {ex}")
+        print(f"\n[INFO] Произошла ошибка: {ex}")
 
 
 if __name__ == '__main__':

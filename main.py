@@ -6,6 +6,7 @@ import json
 from app.loader_attachments import main as mail_main
 from app.parser import main as parser_main
 from ORM.create_DB import recreate_database
+from app.animation import start_animation, stop_animation_func
 
 
 def fix_split(ticker_list, transactions, transactions_executed):
@@ -223,32 +224,44 @@ def main():
 
     resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
     if resp == 'y':
-        mail_main()
+        start_animation()
+        try:
+            mail_main()
+        finally:
+            stop_animation_func()
         print('Обновление отчетов завершено')
     elif resp == 'n':
         print('Отчёты не обновлены')
     elif resp != 'n':
-        raise Exception('Неверный ответ. Отчёты не обновлены')
+        print('Неверный ответ. Отчёты не обновлены')
 
     resp1 = input('Обновить csv-файлы?(y/n): ').strip().lower()
     if resp1 == 'y':
-        parser_main()
-        portfolio_main()
+        start_animation()
+        try:
+            parser_main()
+            portfolio_main()
+        finally:
+            stop_animation_func()
         print('Обновление файлов-csv завершено')
     elif resp1 == 'n':
         print('Файлы-csv не обновлены')
     elif resp1 != 'n':
-        raise Exception('Неверный ответ. файлы-csv не обновлены')
+        print('Неверный ответ. файлы-csv не обновлены')
 
     resp2 = (input('Обновить базу данных?(y/n): ')
              .strip().lower())
     if resp2 == 'y':
-        recreate_database()
+        start_animation()
+        try:
+            recreate_database()
+        finally:
+            stop_animation_func()
         print('База обновлена')
     elif resp2 == 'n':
         print('База не обновлена')
     else:
-        raise Exception('Неверный ответ. База не обновлена. Обновите в ручную')
+        print('Неверный ответ. База не обновлена. Обновите в ручную')
 
 
 if __name__ == '__main__':

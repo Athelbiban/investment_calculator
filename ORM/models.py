@@ -94,7 +94,7 @@ class Cashflow(Base):
 
 def create_all_tables():
     Base.metadata.create_all(engine)
-    print("[INFO] Таблицы успешно созданы или существовали")
+    # print("[INFO] Таблицы успешно созданы или существовали")
 
 
 if __name__ == '__main__':
