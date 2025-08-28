@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 
-from ORM.drop_dudplicates_cashflow import drop_duplicates_cashflow
+from ORM.drop_duplicates_cashflow import drop_duplicates_cashflow
 from ORM.connect_DB import get_db_url
 
 
