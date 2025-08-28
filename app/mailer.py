@@ -8,7 +8,7 @@ from app.directing import get_directory
 from app.animation import start_animation_func, stop_animation_func
 
 
-def get_mail_attachments(imap, directory, files_extension='.html'):
+def write_broker_reports(imap, directory, files_extension='.html'):
 
     id_list = imap.search(None, 'ALL')[1][0].split()
     for next_mail_id in id_list:
@@ -26,7 +26,7 @@ def get_mail_attachments(imap, directory, files_extension='.html'):
                     ouf.write(base64.b64decode(part.get_payload()).decode())
 
 
-def main():
+def get_reports():
 
     if dt.MAIL_PASS:
         mail_pass = dt.MAIL_PASS
@@ -47,8 +47,8 @@ def main():
     imap = imaplib.IMAP4_SSL(imap_server)
     imap.login(username, mail_pass)
     imap.select('SberBroker')
-    get_mail_attachments(imap, directory)
+    write_broker_reports(imap, directory)
 
 
 if __name__ == '__main__':
-    main()
+    get_reports()

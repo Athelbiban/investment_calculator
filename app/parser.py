@@ -111,7 +111,7 @@ def parse_directory(directory: str):
     return [f'{directory}{node}' for node in sorted(os.listdir(directory))]
 
 
-def main():
+def launch_parser():
 
     directory: str = get_directory()
     paths: list[str] = parse_directory(directory)
@@ -130,4 +130,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    launch_parser()

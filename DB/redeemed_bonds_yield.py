@@ -2,7 +2,7 @@ import psycopg2
 import re
 
 from decimal import Decimal
-from app.connect_DB import connect_attr
+from connect_DB import connect_attr
 
 
 def get_redeemed_bonds():
@@ -100,7 +100,8 @@ def get_redeemed_bonds():
         for i in income_list:
             print('Название: ' + i[0] + ';' + ' % годовых: ' + str(i[1]) + ';' +
                   ' Дата погашения: ' + str(i[2]) + ';' + ' Дни: ' + str(i[3]) +
-                  ';' + ' Вложено: ' + str(i[4]) + ' Получено: ' + str(i[5])
+                  ';' + ' Вложено: ' + str(i[4]) +
+                  ' Чистый доход: ' + str(i[5])
                   )
 
 
