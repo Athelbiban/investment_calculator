@@ -7,7 +7,7 @@ from app.portfolio_accountant import build_general_portfolio
 
 def main():
 
-    print('investment_calculator v0.2.0 by Stas Vostrov\n')
+    print('Investment Calculator v0.2.0 by Stas Vostrov\n')
     resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
     if resp == 'y':
         start_animation_func()
