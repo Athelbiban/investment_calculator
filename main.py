@@ -3,11 +3,12 @@ from app.parser import launch_parser
 from ORM.create_DB import recreate_database
 from app.animation import start_animation_func, stop_animation_func
 from app.portfolio_accountant import build_general_portfolio
+from app.writer_gsheets import main as w_gsheets
 
 
 def main():
 
-    print('Investment Calculator v0.2.0 by Stas Vostrov\n')
+    print('Investment Calculator v0.3.0 by Stas Vostrov\n')
     resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
     if resp == 'y':
         start_animation_func()
@@ -31,7 +32,7 @@ def main():
             stop_animation_func()
         print('Обновление файлов-csv завершено')
     elif resp1 == 'n':
-        print('Файлы-csv не обновлены')
+        print('Файлы-csv не обновлены: отменено пользователем')
     elif resp1 != 'n':
         print('Неверный ответ. файлы-csv не обновлены')
 
@@ -43,11 +44,24 @@ def main():
             recreate_database()
         finally:
             stop_animation_func()
-        print('База обновлена')
+        print('Обновление базы завершено')
     elif resp2 == 'n':
-        print('База не обновлена')
+        print('База не обновлена: отменено пользователем')
     else:
-        print('Неверный ответ. База не обновлена. Обновите в ручную')
+        print('Неверный ответ. База не обновлена')
+
+    resp3 = input('Обновить Google Таблицу в облаке?(y/n): ').strip().lower()
+    if resp3 == 'y':
+        start_animation_func()
+        try:
+            w_gsheets()
+        finally:
+            stop_animation_func()
+        print('Обновление Google Таблицы завершено')
+    elif resp3 == 'n':
+        print('Google Таблица не обновлена: отменено пользователем')
+    else:
+        print('Неверный ответ. Google Таблица не обновлена')
 
     input('\nУспешное выполнение. Нажмите Enter для выхода...')
 
