@@ -2,7 +2,7 @@ import imaplib
 import email
 import base64
 import re
-import passwd.config_mail as dt
+from passwd.config_mail import MAIL_PASS, BROKERAGE_ACCOUNT_NUMBER, USERNAME
 
 from app.directing import get_directory
 from app.animation import start_animation_func, stop_animation_func
@@ -18,7 +18,7 @@ def write_broker_reports(imap, directory, files_extension='.html'):
         for part in msg.walk():
 
             if part.get_content_disposition() == 'attachment'\
-                    and part.get_filename()[:7] == dt.BROKERAGE_ACCOUNT_NUMBER\
+                    and part.get_filename()[:7] == BROKERAGE_ACCOUNT_NUMBER\
                     and (re.search(r'\.\w+$', part.get_filename()).group() == files_extension
                          or re.search(r'\.\w+$', part.get_filename()).group() == files_extension.upper()):
 
@@ -28,15 +28,15 @@ def write_broker_reports(imap, directory, files_extension='.html'):
 
 def get_reports():
 
-    if dt.MAIL_PASS:
-        mail_pass = dt.MAIL_PASS
+    if MAIL_PASS:
+        mail_pass = MAIL_PASS
     else:
         stop_animation_func()
         mail_pass = input('MAIL_PASS: ')
         start_animation_func()
 
-    if dt.USERNAME:
-        username = dt.USERNAME
+    if USERNAME:
+        username = USERNAME
     else:
         stop_animation_func()
         username = input('USERNAME: ')
