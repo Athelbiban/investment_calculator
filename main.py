@@ -8,7 +8,7 @@ from app.writer_gsheets import main as w_gsheets
 
 def main():
 
-    print('Investment Calculator v0.3.0 by Stas Vostrov\n')
+    print('Investment Calculator v0.3.1 by Stas Vostrov\n')
     resp = input('Обновить отчёты брокера?(y/n): ').strip().lower()
     if resp == 'y':
         start_animation_func()
