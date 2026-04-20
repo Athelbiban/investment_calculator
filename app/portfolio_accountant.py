@@ -12,7 +12,8 @@ def fix_split(ticker_list, transactions, transactions_executed):
         'FXUS': ['2022-01-24', 100],
         'FXRL': ['2021-11-24', 100],
         'FXRU': ['2022-02-17', 10],
-        'FXDE': ['2021-12-15', 100]
+        'FXDE': ['2021-12-15', 100],
+        'T': ['2026-04-16', 10]
     }
 
     replacement_dict = {
