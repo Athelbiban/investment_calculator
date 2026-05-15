@@ -6,90 +6,87 @@ from app.portfolio_accountant import build_general_portfolio
 from app.writer_gsheets import main as w_gsheets
 
 
+def main_func(key: str, commands: dict):
+
+    if key in commands:
+        start_animation_func()
+        try:
+            commands[key]()
+        except Exception as e:
+            print(f"\nНепредвиденная ошибка: {e}")
+            input('\nНажмите Enter для выхода...')
+        finally:
+            stop_animation_func()
+        print(f"{commands[key].__doc__} выполнено")
+
 
 def main_response():
     return input('\nВведите команду (список команд help): ').strip().lower()
 
 
-def main_help():
-    print('\nhelp - список команд'
-          '\nall - выполнить все действия автоматически'
-          '\nupdreports - обновить отчеты брокера'
-          '\nupdcsv - обновить csv-файлы'
-          '\nupddb - обновить базу данных'
-          '\nupdgsheets - обновить Google-таблицу в облаке')
+def greeting():
+    print('Investment Calculator v0.6.0 by Stas Vostrov\n')
 
 
 def main():
 
-    print('Investment Calculator v0.5.0 by Stas Vostrov\n')
+    greeting()
+    commands = {}
 
-    command_list = ['help', 'all', 'updreports', 'updcsv', 'upddb', 'updgsheets', 'exit',
-                    'рудз', 'фдд', 'гзвкузщкеы', 'гзвсым', 'гзвви', 'гзвпырууеы', 'учше'
-    ]
+    def register_commands(name):
+        def decorator(function):
+            commands[name] = function
+            return function
+        return decorator
 
-    while (response := main_response()) != 'exit':
+    @register_commands('help')
+    def show_help():
+        """Справка по командам"""
+        print('\n===ДОСТУПНЫЕ КОМАНДЫ===')
+        for cmd, func in commands.items():
+            desc = func.__doc__ or "Нет описания"
+            print(f"  {cmd:<10} - {desc}")
+        print('========================')
 
-        if response == 'help' or response == 'рудз':
-            main_help()
-            continue
+    @register_commands('all')
+    def start_all():
+        """Полное обновление"""
+        get_reports()
+        launch_parser()
+        build_general_portfolio()
+        recreate_database()
+        w_gsheets()
 
-        elif response == 'all' or response == 'фдд':
-            start_animation_func()
-            try:
-                get_reports()
-                launch_parser()
-                build_general_portfolio()
-                recreate_database()
-                w_gsheets()
-            except Exception as e:
-                print(f"\nНепредвиденная ошибка: {e}")
-                input('\nНажмите Enter для выхода...')
-            finally:
-                stop_animation_func()
-            print('Полное обновление выполнено\n')
-            continue
+    @register_commands('reports')
+    def reports():
+        """Обновление отчетов брокера"""
+        get_reports()
 
-        elif response == 'updreports' or response == 'гзвкузщкеы':
-            start_animation_func()
-            try:
-                get_reports()
-            finally:
-                stop_animation_func()
-            print('Обновление отчетов завершено\n')
-            continue
+    @register_commands('csv')
+    def csv():
+        """Обновление csv-файлов"""
+        launch_parser()
+        build_general_portfolio()
 
-        elif response == 'updcsv' or response == 'гзвсым':
-            start_animation_func()
-            try:
-                launch_parser()
-                build_general_portfolio()
-            finally:
-                stop_animation_func()
-            print('Обновление файлов-csv завершено\n')
-            continue
+    @register_commands('db')
+    def db():
+        """Обновление базы данных"""
+        recreate_database()
 
-        elif response == 'upddb' or response == 'гзвви':
-            start_animation_func()
-            try:
-                recreate_database()
-            finally:
-                stop_animation_func()
-            print('Обновление базы завершено\n')
-            continue
+    @register_commands('sheets')
+    def sheets():
+        """Обновление Google таблицы в облаке"""
+        w_gsheets()
 
-        elif response == 'updgsheets' or response == 'гзвпырууеы':
-            start_animation_func()
-            try:
-                w_gsheets()
-            finally:
-                stop_animation_func()
-            print('Обновление Google Таблицы завершено\n')
-            continue
+    @register_commands('exit')
+    def main_exit():
+        """Завершение по требованию пользователя"""
+        pass
 
-        else:
-            print('Неверный ответ\n')
-            continue
+    while (response := main_response()) != 'exit' :
+        main_func(response, commands)
+
+    input("Работа завершена по требованию пользователя. Для выхода нажмите Enter...")
 
 
 if __name__ == '__main__':
