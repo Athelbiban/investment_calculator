@@ -1,54 +1,26 @@
 from app.mailer import get_reports
 from app.parser import launch_parser
 from ORM.create_DB import recreate_database
-from app.animation import start_animation_func, stop_animation_func
 from app.portfolio_accountant import build_general_portfolio
 from app.writer_gsheets import main as w_gsheets
-
-
-def main_func(key: str, commands: dict):
-
-    if key in commands:
-        start_animation_func()
-        try:
-            commands[key]()
-        except Exception as e:
-            print(f"\nНепредвиденная ошибка: {e}")
-            input('\nНажмите Enter для выхода...')
-        finally:
-            stop_animation_func()
-        print(f"{commands[key].__doc__} выполнено")
-
-
-def main_response():
-    return input('\nВведите команду (список команд help): ').strip().lower()
+from app.command_manager import CommandManager
 
 
 def greeting():
-    print('Investment Calculator v0.6.0 by Stas Vostrov\n')
+    application_name = 'Investment Calculator v0.6.1 by Stas Vostrov'
+    print(application_name, end='\n')
 
 
 def main():
-
     greeting()
-    commands = {}
+    app = CommandManager('InvestmentCalculator')
 
-    def register_commands(name):
-        def decorator(function):
-            commands[name] = function
-            return function
-        return decorator
-
-    @register_commands('help')
+    @app.command('help')
     def show_help():
-        """Справка по командам"""
-        print('\n===ДОСТУПНЫЕ КОМАНДЫ===')
-        for cmd, func in commands.items():
-            desc = func.__doc__ or "Нет описания"
-            print(f"  {cmd:<10} - {desc}")
-        print('========================')
+        """Показать справку по командам"""
+        app.show_help()
 
-    @register_commands('all')
+    @app.command('all')
     def start_all():
         """Полное обновление"""
         get_reports()
@@ -57,34 +29,34 @@ def main():
         recreate_database()
         w_gsheets()
 
-    @register_commands('reports')
+    @app.command('reports')
     def reports():
         """Обновление отчетов брокера"""
         get_reports()
 
-    @register_commands('csv')
+    @app.command('csv')
     def csv():
         """Обновление csv-файлов"""
         launch_parser()
         build_general_portfolio()
 
-    @register_commands('db')
+    @app.command('db')
     def db():
         """Обновление базы данных"""
         recreate_database()
 
-    @register_commands('sheets')
+    @app.command('sheets')
     def sheets():
         """Обновление Google таблицы в облаке"""
         w_gsheets()
 
-    @register_commands('exit')
+    @app.command('exit')
     def main_exit():
         """Завершение по требованию пользователя"""
         pass
 
-    while (response := main_response()) != 'exit' :
-        main_func(response, commands)
+    while (response := input('\nВведите команду (список команд help): ').strip().lower()) != 'exit' :
+        app.execute(response)
 
     input("Работа завершена по требованию пользователя. Для выхода нажмите Enter...")
 
