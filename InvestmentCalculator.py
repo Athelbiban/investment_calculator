@@ -1,3 +1,4 @@
+import sys
 from app.mailer import get_reports
 from app.parser import launch_parser
 from ORM.create_DB import recreate_database
@@ -53,7 +54,7 @@ class InvestmentCalculator:
         def exit_program():
             """Завершение по требованию пользователя"""
             input("Работа завершена по требованию пользователя. Для выхода нажмите Enter...")
-            exit()
+            sys.exit(0)
 
         @self.cmanager.command('help')
         def show_help():
