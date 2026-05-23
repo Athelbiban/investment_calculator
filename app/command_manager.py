@@ -1,6 +1,6 @@
 from functools import wraps
 from collections.abc import Callable
-from app.animation import Animation
+from app.animation import start_animation_func, stop_animation_func
 
 
 class CommandManager:
@@ -11,7 +11,6 @@ class CommandManager:
         self.commands: dict[str, Callable] = {}
         self.command_metadata: dict[str, dict[str,str | Callable]] = {}
         self.history: list[str] = []
-        self.animation = Animation()
 
     def command(self, name: str = None, description: str = None) -> Callable:
         """Декоратор для регистрации команд"""
@@ -39,18 +38,17 @@ class CommandManager:
         if name not in self.commands:
             print(f"Команда '{name}' не найдена. Список команд: help")
             return
-        elif name == 'exit' or 'help' or 'history':
+        elif name == 'exit':
             self.commands[name]()
-            return
 
-        self.animation.start_animation_func()
+        start_animation_func()
         try:
             self.commands[name]()
         except Exception as e:
             print(f"\nНепредвиденная ошибка: {e}")
             input('\nНажмите Enter для выхода...')
         finally:
-            self.animation.stop_animation_func()
+            stop_animation_func()
         print(f"{self.get_command_info(name)['description']}. Выполнено успешно")
 
     def get_command_info(self, name: str) -> dict or None:
@@ -59,6 +57,8 @@ class CommandManager:
 
     def show_help(self) -> None:
         """Показать справку по командам"""
+        print(f'\n=== МЕНЕДЖЕР КОМАНД: {self.name} ===')
+        print(f'Всего команд: {len(self.commands)}')
         print('\n===ДОСТУПНЫЕ КОМАНДЫ===')
         for cmd_name, metadata in sorted(self.command_metadata.items()):
             print(f"  {cmd_name:<12} - {metadata['description']}")

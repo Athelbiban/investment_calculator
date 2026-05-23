@@ -3,7 +3,9 @@ import email
 import base64
 import re
 from passwd.config_mail import MAIL_PASS, BROKERAGE_ACCOUNT_NUMBER, USERNAME
+
 from app.directing import get_directory
+from app.animation import start_animation_func, stop_animation_func
 
 
 def write_broker_reports(imap, directory, files_extension='.html'):
@@ -29,21 +31,21 @@ def get_reports():
     if MAIL_PASS:
         mail_pass = MAIL_PASS
     else:
+        stop_animation_func()
         mail_pass = input('MAIL_PASS: ')
+        start_animation_func()
 
     if USERNAME:
         username = USERNAME
     else:
+        stop_animation_func()
         username = input('USERNAME: ')
+        start_animation_func()
 
     directory = get_directory()
     imap_server = 'imap.mail.ru'
     imap = imaplib.IMAP4_SSL(imap_server)
-    try:
-        imap.login(username, mail_pass)
-    except imaplib.IMAP4.error as e:
-        print(f'Неверный MAIL_PASS или USERNAME: {e}')
-        return
+    imap.login(username, mail_pass)
     imap.select('SberBroker')
     write_broker_reports(imap, directory)
 
