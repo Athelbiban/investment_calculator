@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, Dict, Any
+from collections.abc import Callable
 from app.animation import start_animation_func, stop_animation_func
 
 
@@ -8,17 +8,17 @@ class CommandManager:
 
     def __init__(self, name='default'):
         self.name: str = name
-        self.commands: Dict[str, Callable] = {}
-        self.command_metadata: Dict[str, dict] = {}
-        self.history: list = []
+        self.commands: dict[str, Callable] = {}
+        self.command_metadata: dict[str, dict[str,str | Callable]] = {}
+        self.history: list[str] = []
 
-    def command(self, name: str = None, description: str = None):
+    def command(self, name: str = None, description: str = None) -> Callable:
         """Декоратор для регистрации команд"""
-        def decorator(func):
+        def decorator(func) -> Callable:
             cmd_name = name or func.__name__
 
             @wraps(func)
-            def wrapper(*args, **kwargs):
+            def wrapper(*args, **kwargs) -> Callable:
                 self.history.append(cmd_name)
                 return func(*args, **kwargs)
 
@@ -28,16 +28,18 @@ class CommandManager:
                 'original_func': func
             }
             self.commands[cmd_name] = wrapper
-            return wrapper
 
+            return wrapper
         return decorator
 
-    def execute(self, name: str) -> Any:
+    def execute(self, name: str) -> None:
         """Выполнить команду"""
 
         if name not in self.commands:
-            available = ", ".join(self.commands.keys())
-            raise ValueError(f"Команда '{name}' не найдена. Доступные команды: {available}")
+            print(f"Команда '{name}' не найдена. Список команд: help")
+            return
+        elif name == 'exit':
+            self.commands[name]()
 
         start_animation_func()
         try:
@@ -53,12 +55,25 @@ class CommandManager:
         """Получить информацию о команде"""
         return self.command_metadata.get(name)
 
-    def show_help(self):
+    def show_help(self) -> None:
         """Показать справку по командам"""
         print(f'\n=== МЕНЕДЖЕР КОМАНД: {self.name} ===')
         print(f'Всего команд: {len(self.commands)}')
-        print(f'История вызовов: {self.history}')
         print('\n===ДОСТУПНЫЕ КОМАНДЫ===')
-        for cmd_name, metadata in self.command_metadata.items():
+        for cmd_name, metadata in sorted(self.command_metadata.items()):
             print(f"  {cmd_name:<12} - {metadata['description']}")
+        print('========================')
+
+    def show_history(self) -> None:
+        """Показать историю вызовов"""
+        if not self.history:
+            print('История пуста')
+            return
+
+        print(f'\n=== ИСТОРИЯ КОМАНД ({len(self.history)}) ===')
+        print('Показаны 10 последних')
+        for i, cmd in enumerate(self.history[-10:], 1):
+            print(f'  {i:2}. {cmd}')
+        if len(self.history) > 10:
+            print(f'  ... и ещё {len(self.history) - 10}')
         print('========================')
