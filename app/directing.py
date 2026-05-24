@@ -3,7 +3,7 @@ import platform
 from passwd.directories import LINUX1, WINDOWS1, WINDOWS2
 
 
-def get_directory():
+def get_directory() -> str:
 
     system = platform.system()
 

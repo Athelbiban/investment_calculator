@@ -1,4 +1,6 @@
 import sys
+
+from app.animation import AnimationManager
 from app.mailer import get_reports
 from app.parser import launch_parser
 from ORM.create_DB import recreate_database
@@ -14,7 +16,8 @@ class InvestmentCalculator:
         self.name = self.__class__.__name__
         self.version = '0.6.2'
         self.author = 'Stas Vostrov'
-        self.cmanager = CommandManager(self.name)
+        self.animation: AnimationManager | None = AnimationManager()
+        self.cmanager: CommandManager = CommandManager(self.name, self.animation)
         self._register_commands()
 
     def _register_commands(self):
@@ -23,7 +26,7 @@ class InvestmentCalculator:
         @self.cmanager.command('all')
         def run_all():
             """Полное обновление"""
-            get_reports()
+            get_reports(self.animation)
             launch_parser()
             build_general_portfolio()
             recreate_database()
@@ -32,7 +35,7 @@ class InvestmentCalculator:
         @self.cmanager.command('reports')
         def reports():
             """Обновление отчетов брокера"""
-            get_reports()
+            get_reports(self.animation)
 
         @self.cmanager.command('csv')
         def csv():
@@ -71,7 +74,7 @@ class InvestmentCalculator:
         heading = f'{self.name} v{self.version} by {self.author}'
         print(heading, end='\n')
 
-    def run(self):
+    def run(self) -> None:
         """Запускает главный цикл"""
         self.heading()
         while True:
