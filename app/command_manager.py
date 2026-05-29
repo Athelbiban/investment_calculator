@@ -14,20 +14,38 @@ class CommandManager:
         self.history: list[str] = []
         self._builtin_commands = ['help', 'history', 'exit']
 
-    def command(self, name: str = None, description: str = None) -> Callable:
+    def command(self, name: str = None,
+                description: str = None,
+                steps: list[tuple[str, Callable]] = None
+                ) -> Callable:
         """Декоратор для регистрации команд"""
+
         def decorator(func) -> Callable:
             cmd_name = name or func.__name__
+            cmd_desc = description or func.__doc__ or "Нет описания"
+
+            if steps:
+                def step_runner():
+                    for msg, step_func in steps:
+                        if self.animation:
+                            with self.animation.status_context(msg):
+                                step_func()
+                        else:
+                            step_func()
+                target = step_runner
+            else:
+                target = func
 
             @wraps(func)
-            def wrapper(*args, **kwargs) -> Callable:
+            def wrapper():
                 self.history.append(cmd_name)
-                return func(*args, **kwargs)
+                return target()
 
             self.command_metadata[cmd_name] = {
                 'name': cmd_name,
-                'description': description or func.__doc__ or "Нет описания",
-                'original_func': func
+                'description': cmd_desc,
+                'original_func': func,
+                'steps': steps
             }
             self.commands[cmd_name] = wrapper
 

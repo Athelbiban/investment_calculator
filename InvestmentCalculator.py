@@ -1,4 +1,5 @@
 import sys
+from functools import partial
 
 from app.animation import AnimationManager
 from app.mailer import get_reports
@@ -23,61 +24,48 @@ class InvestmentCalculator:
     def _register_commands(self):
         """Регистрирует все команды"""
 
-        @self.cmanager.command('all')
-        def run_all():
-            """Полное обновление"""
-            with self.animation.status_context('Загрузка брокерских отчетов из почты'):
-                get_reports(self.animation)
-            with self.animation.status_context('Обработка отчетов'):
-                launch_parser()
-            with self.animation.status_context('Создание csv-файлов'):
-                build_general_portfolio()
-            with self.animation.status_context('Создание базы данных'):
-                recreate_database()
-            with self.animation.status_context('Обновление Google-таблицы в облаке'):
-                w_gsheets()
+        fetch_reports = partial(get_reports, self.animation)
 
-        @self.cmanager.command('reports')
-        def reports():
-            """Обновление отчетов брокера"""
-            with self.animation.status_context('Загрузка брокерских отчетов из почты'):
-                get_reports(self.animation)
+        @self.cmanager.command('all', 'Полное обновление', steps=[
+            ('Загрузка отчетов из почты', fetch_reports),
+            ('Обработка отчетов', launch_parser),
+            ('Создание csv-файлов', build_general_portfolio),
+            ('Создание базы данных', recreate_database),
+            ('Обновление Google-таблиц', w_gsheets)
+        ])
+        def run_all(): pass
 
-        @self.cmanager.command('csv')
-        def csv():
-            """Обновление csv-файлов"""
-            with self.animation.status_context('Обработка отчетов'):
-                launch_parser()
-            with self.animation.status_context('Создание csv-файлов'):
-                build_general_portfolio()
+        @self.cmanager.command('reports', 'Обновление отчетов брокера', steps=[
+            ('Загрузка отчетов из почты', fetch_reports)
+        ])
+        def run_reports(): pass
 
-        @self.cmanager.command('db')
-        def db():
-            """Обновление базы данных"""
-            with self.animation.status_context('Создание базы данных'):
-                recreate_database()
+        @self.cmanager.command('csv', 'Обновление csv-файлов', steps=[
+            ('Обработка отчетов', launch_parser),
+            ('Создание csv-файлов', build_general_portfolio)
+        ])
+        def run_csv(): pass
 
-        @self.cmanager.command('sheets')
-        def sheets():
-            """Обновление Google таблицы в облаке"""
-            with self.animation.status_context('Обновление Google-таблицы в облаке'):
-                w_gsheets()
+        @self.cmanager.command('db', 'Обновление базы данных', steps=[
+            ('Создание базы данных', recreate_database)
+        ])
+        def run_db(): pass
 
-        @self.cmanager.command('exit')
+        @self.cmanager.command('sheets', 'Обновление Google-таблиц', steps=[
+            ('Обновление Google-таблиц', w_gsheets)
+        ])
+        def run_sheets(): pass
+
+        @self.cmanager.command('exit', 'Завершение работы')
         def exit_program():
-            """Завершение по требованию пользователя"""
-            input("Работа завершена по требованию пользователя. Для выхода нажмите Enter...")
+            input("Работа завершена. Нажмите Enter...")
             sys.exit(0)
 
-        @self.cmanager.command('help')
-        def show_help():
-            """Показать справку по командам"""
-            self.cmanager.show_help()
+        @self.cmanager.command('help', 'Справка')
+        def show_help(): self.cmanager.show_help()
 
-        @self.cmanager.command('history')
-        def show_history():
-            """Показать историю выполнения команд"""
-            self.cmanager.show_history()
+        @self.cmanager.command('history', 'История')
+        def show_history(): self.cmanager.show_history()
 
     def heading(self) -> None:
         """Заголовок приложения"""
@@ -92,5 +80,4 @@ class InvestmentCalculator:
 
 
 if __name__ == '__main__':
-    app = InvestmentCalculator()
-    app.run()
+    InvestmentCalculator().run()

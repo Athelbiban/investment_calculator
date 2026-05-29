@@ -10,8 +10,8 @@ class AnimationManager:
     def __init__(self):
         self._frames = ['. ', '.. ', '...', ' ..', '  .', '   ']
         self._interval = 0.4
-        self._default_message = "Пожалуйста, подождите"
-        self._current_message = self._default_message
+        self.default_message = "Пожалуйста, подождите"
+        self._current_message = self.default_message
         self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
