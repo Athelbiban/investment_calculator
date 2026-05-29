@@ -36,9 +36,8 @@ def get_reports(animation: AnimationManager | None = None) -> None:
         mail_pass = MAIL_PASS
     else:
         try:
-            animation.stop()
-            mail_pass = input('MAIL_PASS: ')
-            animation.start()
+            with animation.paused():
+                mail_pass = input('MAIL_PASS: ')
         except imaplib.IMAP4.error as e:
             print(f"Неправильно введен MAIL_PASS или USERNAME: {e}")
 
@@ -46,9 +45,8 @@ def get_reports(animation: AnimationManager | None = None) -> None:
         username = USERNAME
     else:
         try:
-            animation.stop()
-            username = input('USERNAME: ')
-            animation.start()
+            with animation.paused():
+                username = input('USERNAME: ')
         except imaplib.IMAP4.error as e:
             print(f"Неправильно введен MAIL_PASS или USERNAME: {e}")
 

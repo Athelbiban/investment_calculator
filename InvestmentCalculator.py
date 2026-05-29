@@ -26,32 +26,42 @@ class InvestmentCalculator:
         @self.cmanager.command('all')
         def run_all():
             """Полное обновление"""
-            get_reports(self.animation)
-            launch_parser()
-            build_general_portfolio()
-            recreate_database()
-            w_gsheets()
+            with self.animation.status_context('Загрузка брокерских отчетов из почты'):
+                get_reports(self.animation)
+            with self.animation.status_context('Обработка отчетов'):
+                launch_parser()
+            with self.animation.status_context('Создание csv-файлов'):
+                build_general_portfolio()
+            with self.animation.status_context('Создание базы данных'):
+                recreate_database()
+            with self.animation.status_context('Обновление Google-таблицы в облаке'):
+                w_gsheets()
 
         @self.cmanager.command('reports')
         def reports():
             """Обновление отчетов брокера"""
-            get_reports(self.animation)
+            with self.animation.status_context('Загрузка брокерских отчетов из почты'):
+                get_reports(self.animation)
 
         @self.cmanager.command('csv')
         def csv():
             """Обновление csv-файлов"""
-            launch_parser()
-            build_general_portfolio()
+            with self.animation.status_context('Обработка отчетов'):
+                launch_parser()
+            with self.animation.status_context('Создание csv-файлов'):
+                build_general_portfolio()
 
         @self.cmanager.command('db')
         def db():
             """Обновление базы данных"""
-            recreate_database()
+            with self.animation.status_context('Создание базы данных'):
+                recreate_database()
 
         @self.cmanager.command('sheets')
         def sheets():
             """Обновление Google таблицы в облаке"""
-            w_gsheets()
+            with self.animation.status_context('Обновление Google-таблицы в облаке'):
+                w_gsheets()
 
         @self.cmanager.command('exit')
         def exit_program():
