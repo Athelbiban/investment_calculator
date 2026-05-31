@@ -1,5 +1,6 @@
 from functools import wraps
-from collections.abc import Callable
+from typing import Any
+from collections.abc import Callable, Sequence
 from app.animation import AnimationManager
 
 
@@ -10,13 +11,13 @@ class CommandManager:
         self.name: str = name
         self.animation: AnimationManager | None = animation
         self.commands: dict[str, Callable] = {}
-        self.command_metadata: dict[str, dict[str,str | Callable]] = {}
+        self.command_metadata: dict[str, dict[str, Any]] = {}
         self.history: list[str] = []
         self._builtin_commands = ['help', 'history', 'exit']
 
-    def command(self, name: str = None,
-                description: str = None,
-                steps: list[tuple[str, Callable]] = None
+    def command(self, name: str | None = None,
+                description: str | None = None,
+                steps: Sequence[tuple[str, Callable]] | None = None
                 ) -> Callable:
         """Декоратор для регистрации команд"""
 
@@ -25,8 +26,8 @@ class CommandManager:
             cmd_desc = description or func.__doc__ or "Нет описания"
 
             if steps:
-                def step_runner():
-                    for msg, step_func in steps:
+                def step_runner(captured_steps=steps):
+                    for msg, step_func in captured_steps:
                         if self.animation:
                             with self.animation.status_context(msg):
                                 step_func()
@@ -37,9 +38,9 @@ class CommandManager:
                 target = func
 
             @wraps(func)
-            def wrapper():
+            def wrapper() -> None:
                 self.history.append(cmd_name)
-                return target()
+                target()
 
             self.command_metadata[cmd_name] = {
                 'name': cmd_name,
@@ -62,17 +63,21 @@ class CommandManager:
             self.commands[name]()
             return
 
-        try:
-            self.animation.start()
-            self.commands[name]()
-            self.animation.stop()
-            print(f"{self.get_command_info(name)['description']}. Выполнено успешно")
-        except Exception as e:
-            self.animation.stop()
-            print(f"\nНепредвиденная ошибка: {e}")
-            input('\nНажмите Enter для продолжения...')
+        if self.animation:
+            try:
+                self.animation.start()
+                self.commands[name]()
+                self.animation.stop()
 
-    def get_command_info(self, name: str) -> dict or None:
+                cmd_info = self.get_command_info(name)
+                desc = cmd_info.get('description', 'Команда') if cmd_info else 'Команда пользоваталя'
+                print(f"{desc}. Выполнено успешно")
+            except Exception as e:
+                self.animation.stop()
+                print(f"\nНепредвиденная ошибка: {e}")
+                input('\nНажмите Enter для продолжения...')
+
+    def get_command_info(self, name: str) -> dict[str, Any] | None:
         """Получить информацию о команде"""
         return self.command_metadata.get(name)
 

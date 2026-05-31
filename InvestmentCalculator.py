@@ -15,7 +15,7 @@ class InvestmentCalculator:
 
     def __init__(self):
         self.name = self.__class__.__name__
-        self.version = '0.7.0'
+        self.version = '0.7.1'
         self.author = 'Stas Vostrov'
         self.animation: AnimationManager | None = AnimationManager()
         self.cmanager: CommandManager = CommandManager(self.name, self.animation)
@@ -27,16 +27,16 @@ class InvestmentCalculator:
         fetch_reports = partial(get_reports, self.animation)
 
         @self.cmanager.command('all', 'Полное обновление', steps=[
-            ('Загрузка отчетов из почты', fetch_reports),
+            ('Загрузка отчетов из e-mail', fetch_reports),
             ('Обработка отчетов', launch_parser),
             ('Создание csv-файлов', build_general_portfolio),
             ('Создание базы данных', recreate_database),
-            ('Обновление Google-таблиц', w_gsheets)
+            ('Внесение изменений в Google-таблицу', w_gsheets)
         ])
         def run_all(): pass
 
         @self.cmanager.command('reports', 'Обновление отчетов брокера', steps=[
-            ('Загрузка отчетов из почты', fetch_reports)
+            ('Загрузка отчетов из e-mail', fetch_reports)
         ])
         def run_reports(): pass
 
@@ -51,14 +51,14 @@ class InvestmentCalculator:
         ])
         def run_db(): pass
 
-        @self.cmanager.command('sheets', 'Обновление Google-таблиц', steps=[
-            ('Обновление Google-таблиц', w_gsheets)
+        @self.cmanager.command('sheets', 'Обновление Google-таблицы', steps=[
+            ('Внесение изменений в Google-таблицу', w_gsheets)
         ])
         def run_sheets(): pass
 
         @self.cmanager.command('exit', 'Завершение работы')
         def exit_program():
-            input("Работа завершена. Нажмите Enter...")
+            input("Для завершения работы нажмите Enter...")
             sys.exit(0)
 
         @self.cmanager.command('help', 'Справка')
