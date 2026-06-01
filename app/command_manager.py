@@ -1,3 +1,4 @@
+import imaplib
 from functools import wraps
 from typing import Any
 from collections.abc import Callable, Sequence
@@ -72,6 +73,12 @@ class CommandManager:
                 cmd_info = self.get_command_info(name)
                 desc = cmd_info.get('description', 'Команда') if cmd_info else 'Команда пользоваталя'
                 print(f"{desc}. Выполнено успешно")
+
+            except imaplib.IMAP4.error as e:
+                self.animation.stop()
+                print(f"Ошибка авторизации или подключения: {e}")
+                input('\nНажмите Enter для продолжения...')
+
             except Exception as e:
                 self.animation.stop()
                 print(f"\nНепредвиденная ошибка: {e}")

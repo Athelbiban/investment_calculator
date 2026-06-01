@@ -1,61 +1,52 @@
 import imaplib
 import email
-import base64
-import re
-from typing import Any
-
+from pathlib import Path
+from typing import Optional
+from contextlib import nullcontext
 from app.animation import AnimationManager
-from passwd.config_mail import MAIL_PASS, BROKERAGE_ACCOUNT_NUMBER, USERNAME
+from passwd.config import MAIL_PASSWORD, BROKERAGE_ACCOUNT_NUMBER, MAIL_USERNAME, IMAP_SERVER, IMAP_FOLDER
 from app.directing import get_directory
 
 
-def write_broker_reports(imap: Any, directory: str, files_extension: str ='.html') -> None:
+def write_broker_reports(imap: imaplib.IMAP4_SSL, directory: str, ext: str ='.html') -> None:
+    status, data = imap.search(None, 'ALL')
+    if status != 'OK': return
 
-    id_list = imap.search(None, 'ALL')[1][0].split()
-    for next_mail_id in id_list:
+    for msg_id in data[0].split():
+        status, msg_data = imap.fetch(msg_id, '(RFC822)')
+        if status != 'OK': continue
 
-        res, data = imap.fetch(next_mail_id, '(RFC822)')
-        msg = email.message_from_bytes(data[0][1])
+        msg = email.message_from_bytes(msg_data[0][1])
         for part in msg.walk():
+            if part.get_content_disposition() != 'attachment': continue
+            fname = part.get_filename()
+            if not fname or (BROKERAGE_ACCOUNT_NUMBER and not fname.startswith(BROKERAGE_ACCOUNT_NUMBER)): continue
+            if not fname.lower().endswith(ext): continue
 
-            if part.get_content_disposition() == 'attachment'\
-                    and part.get_filename()[:7] == BROKERAGE_ACCOUNT_NUMBER\
-                    and (re.search(r'\.\w+$', part.get_filename()).group() == files_extension
-                         or re.search(r'\.\w+$', part.get_filename()).group() == files_extension.upper()):
+            payload = part.get_payload(decode=True)
+            if isinstance(payload, bytes):
+                Path(directory, fname).write_bytes(payload)
 
-                with open(f'{directory}{part.get_filename()}', 'w', encoding='utf-8') as ouf:
-                    ouf.write(base64.b64decode(part.get_payload()).decode())
+def _get_credential(config_val: Optional[str], prompt: str, anim: Optional[AnimationManager]) -> str:
+    if config_val: return config_val
+    context = anim.paused() if anim else nullcontext()
+    with context:
+        return input(prompt)
 
+def get_reports(animation: Optional[AnimationManager] = None) -> None:
+    mail_password = _get_credential(MAIL_PASSWORD, 'MAIL_PASSWORD: ', animation)
+    mail_username = _get_credential(MAIL_USERNAME, 'USERNAME: ', animation)
 
-def get_reports(animation: AnimationManager | None = None) -> None:
-
-    username = None
-    mail_pass = None
-
-    if MAIL_PASS:
-        mail_pass = MAIL_PASS
-    else:
+    imap = imaplib.IMAP4_SSL(IMAP_SERVER)
+    try:
+        imap.login(mail_username, mail_password)
+        imap.select(IMAP_FOLDER)
+        write_broker_reports(imap, get_directory())
+    finally:
         try:
-            with animation.paused():
-                mail_pass = input('MAIL_PASS: ')
-        except imaplib.IMAP4.error as e:
-            print(f"Неправильно введен MAIL_PASS или USERNAME: {e}")
-
-    if USERNAME:
-        username = USERNAME
-    else:
-        try:
-            with animation.paused():
-                username = input('USERNAME: ')
-        except imaplib.IMAP4.error as e:
-            print(f"Неправильно введен MAIL_PASS или USERNAME: {e}")
-
-    directory = get_directory()
-    imap_server = 'imap.mail.ru'
-    imap = imaplib.IMAP4_SSL(imap_server)
-    imap.login(username, mail_pass)
-    imap.select('SberBroker')
-    write_broker_reports(imap, directory)
+            imap.logout()
+        except imaplib.IMAP4.error:
+            pass
 
 
 if __name__ == '__main__':
