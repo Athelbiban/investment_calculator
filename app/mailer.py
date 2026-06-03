@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 from contextlib import nullcontext
 from app.animation import AnimationManager
-from passwd.config import MAIL_PASSWORD, BROKERAGE_ACCOUNT_NUMBER, MAIL_USERNAME, IMAP_SERVER, IMAP_FOLDER
+from app.config import MAIL_PASSWORD, BROKERAGE_ACCOUNT_NUMBER, MAIL_USERNAME, IMAP_SERVER, IMAP_FOLDER
 from app.directing import get_directory
 
 

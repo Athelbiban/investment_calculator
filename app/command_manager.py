@@ -1,8 +1,10 @@
 import imaplib
+import gspread
 from functools import wraps
 from typing import Any
 from collections.abc import Callable, Sequence
 from app.animation import AnimationManager
+from app.config import WORKSHEET_NAME
 
 
 class CommandManager:
@@ -67,22 +69,34 @@ class CommandManager:
         if self.animation:
             try:
                 self.animation.start()
-                self.commands[name]()
+                result = self.commands[name]()
                 self.animation.stop()
 
                 cmd_info = self.get_command_info(name)
                 desc = cmd_info.get('description', 'Команда') if cmd_info else 'Команда пользоваталя'
-                print(f"{desc}. Выполнено успешно")
+
+                if name == 'sheets' and isinstance(result, dict):
+                    print(f"{desc}. Обновлено записей: {result.get('updated', 0)}")
+                    if result.get('not_found'):
+                        print(f"Тикеры не найдены в таблице: {', '.join(result['not_found'])}")
+                else:
+                    print(f"{desc}. Выполнено успешно")
 
             except imaplib.IMAP4.error as e:
                 self.animation.stop()
                 print(f"Ошибка авторизации или подключения: {e}")
                 input('\nНажмите Enter для продолжения...')
 
+            except gspread.exceptions.WorksheetNotFound:
+                self.animation.stop()
+                print(f"\nОшибка: Лист '{WORKSHEET_NAME}' не найден в таблице. Проверьте .env")
+                input('\nНажмите Enter для продолжения...')
+
             except Exception as e:
                 self.animation.stop()
                 print(f"\nНепредвиденная ошибка: {e}")
                 input('\nНажмите Enter для продолжения...')
+
 
     def get_command_info(self, name: str) -> dict[str, Any] | None:
         """Получить информацию о команде"""

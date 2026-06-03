@@ -1,89 +1,94 @@
 import gspread
 import csv
-from passwd.config_gsheets import SERVICE_ACCOUNT_FILE, SPREADSHEET_ID, WORKSHEET_NAME, CSV_FILE
+from pathlib import Path
+from typing import Any
 from google.oauth2.service_account import Credentials
 from gspread.utils import ValueInputOption
+from app.config import SERVICE_ACCOUNT_FILE, SPREADSHEET_ID, WORKSHEET_NAME, CSV_FILE, GSHEETS_SCOPES
 
 
-SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
-]
+def _read_csv(csv_path: str) -> dict[str, tuple[int, float, float]]:
+    """Читает CSV и возвращает словарь {ticker: (qty, avg_price, commission)}"""
+    data: dict[str, tuple[int, float, float]] = {}
+    path = Path(csv_path)
+    if not path.exists():
+        raise FileNotFoundError(f'CSV-файл не найден: {csv_path}')
 
-def read_csv(csv_path):
-
-    data = {}
-    with open(csv_path, mode='r', encoding='utf-8') as f:
+    with open(path, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
+        for row_num, row in enumerate(reader, start=2):
+            ticker = row.get('Название', '').strip()
+            if not ticker:
+                continue
 
-        for row in reader:
-            ticker = row['Название'].strip()
             try:
-                quantity = int(float(row['Количество']))
+                qty = int(float(row['Количество']))
                 avg_price = float(row['Средняя цена'])
                 commission = float(row['Комиссия'])
-                data[ticker] = (quantity, avg_price, commission)
-            except (ValueError, KeyError) as e:
-                print(f"Ошибка в строке {row}: {e}")
-
+                data[ticker] = (qty, avg_price, commission)
+            except (ValueError, KeyError):
+                continue
     return data
 
-def main():
 
-    # print("Чтение CSV-файла...")
-    portfolio_data = read_csv(CSV_FILE)
+class GSheetsUpdater:
+    """Класс для обновления данных портфеля в Google Sheets"""
 
-    if not portfolio_data:
-        print("Не удалось загрузить данные из CSV")
-        return
+    def __init__(self):
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=GSHEETS_SCOPES)
+        self.client = gspread.authorize(creds)
 
-    # print(f"Найдено записей: {len(portfolio_data)}")
+    def update(self) -> dict[str, Any]:
+        """Обновляет Google таблицу. Возвращает отчет о выполнении"""
+        portfolio_data = _read_csv(CSV_FILE)
+        if not portfolio_data:
+            return {'updated': 0, 'not_found': [], 'message': 'CSV-файл пуст или не содержит валидных данных'}
 
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    client = gspread.authorize(creds)
-
-    try:
-        spreadsheet = client.open_by_key(SPREADSHEET_ID)
+        spreadsheet = self.client.open_by_key(SPREADSHEET_ID)
         worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
-
         all_tickers = worksheet.col_values(2)
-        ticker_to_row = {}
 
+        ticker_to_row: dict[str, int] = {}
         for idx, val in enumerate(all_tickers, start=1):
-            if val:
-                ticker_to_row[val] = idx
+            if isinstance(val, str):
+                val = val.strip()
+                if val:
+                    ticker_to_row[val] = idx
 
         cell_updates = []
         not_found = []
+        updated_count = 0
 
         for ticker, (qty, avg_price, commission) in portfolio_data.items():
             row = ticker_to_row.get(ticker)
-            if row:
-                cell_updates.append((row, 5, qty))
-                cell_updates.append((row, 6, avg_price))
-                cell_updates.append((row, 7, commission))
-                # print(f"Подготовлено обновление для {ticker}: строка {row}")
+            if row is not None:
+                cell_updates.extend([
+                    gspread.Cell(row, 5, str(qty)),
+                    gspread.Cell(row, 6, str(avg_price)),
+                    gspread.Cell(row, 7, str(commission))
+                ])
+                updated_count += 1
             else:
                 not_found.append(ticker)
 
         if cell_updates:
-            cell_list = []
-            for row, col, val in cell_updates:
-                cell = gspread.Cell(row, col, val)
-                cell_list.append(cell)
+            worksheet.update_cells(cell_updates, value_input_option=ValueInputOption.user_entered)
 
-            worksheet.update_cells(cell_list, value_input_option=ValueInputOption.user_entered)
-            # print(f"\nОбновлено {len(cell_updates)} ячеек для {len(cell_updates)//3} тикеров")
-        else:
-            print("Нет данных для обновления.")
+        return {
+            'updated': updated_count,
+            'not_found': not_found,
+            'message': "Успешно"
+        }
 
-        if not_found:
-            print("\nТикеры не найдены в таблице:", ", ".join(not_found))
 
-    except gspread.exceptions.WorksheetNotFound:
-        print(f"Лист с именем '{WORKSHEET_NAME}' не найден. Проверьте имя листа")
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
+def update_gsheets() -> dict[str, Any]:
+    """Точка входа для CommandManager"""
+    updater = GSheetsUpdater()
+    return updater.update()
+
 
 if __name__ == '__main__':
-    main()
+    result = update_gsheets()
+    print(f'Обновлено: {result["updated"]} строк')
+    if result['not_found']:
+        print(f'Не найдены: {", ".join(result["not_found"])}')

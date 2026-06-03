@@ -6,19 +6,19 @@ from app.mailer import get_reports
 from app.parser import launch_parser
 from ORM.create_DB import recreate_database
 from app.portfolio_accountant import build_general_portfolio
-from app.writer_gsheets import main as w_gsheets
 from app.command_manager import CommandManager
+from app.writer_gsheets import update_gsheets
 
 
 class InvestmentCalculator:
     """Головной класс приложения"""
 
     def __init__(self):
-        self.name = self.__class__.__name__
-        self.version = '0.7.2'
-        self.author = 'Stas Vostrov'
+        self._name = self.__class__.__name__
+        self.__version__ = '0.7.4'
+        self.__author__ = 'Stas Vostrov'
         self.animation: AnimationManager | None = AnimationManager()
-        self.cmanager: CommandManager = CommandManager(self.name, self.animation)
+        self.cmanager: CommandManager = CommandManager(self._name, self.animation)
         self._register_commands()
 
     def _register_commands(self):
@@ -31,7 +31,7 @@ class InvestmentCalculator:
             ('Обработка отчетов', launch_parser),
             ('Создание csv-файлов', build_general_portfolio),
             ('Создание базы данных', recreate_database),
-            ('Внесение изменений в Google-таблицу', w_gsheets)
+            ('Внесение изменений в Google-таблицу', update_gsheets)
         ])
         def run_all(): pass
 
@@ -52,9 +52,9 @@ class InvestmentCalculator:
         def run_db(): pass
 
         @self.cmanager.command('sheets', 'Обновление Google-таблицы', steps=[
-            ('Внесение изменений в Google-таблицу', w_gsheets)
+            ('Внесение изменений в Google-таблицу', update_gsheets)
         ])
-        def run_sheets(): pass
+        def run_sheets(): return update_gsheets()
 
         @self.cmanager.command('exit', 'Завершение работы')
         def exit_program():
@@ -69,7 +69,7 @@ class InvestmentCalculator:
 
     def heading(self) -> None:
         """Заголовок приложения"""
-        heading = f'{self.name} v{self.version} by {self.author}'
+        heading = f'{self._name} v{self.__version__} by {self.__author__}'
         print(heading, end='\n')
 
     def run(self) -> None:
