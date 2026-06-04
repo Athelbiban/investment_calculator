@@ -33,17 +33,18 @@ class CommandManager:
                     for msg, step_func in captured_steps:
                         if self.animation:
                             with self.animation.status_context(msg):
-                                step_func()
+                                result = step_func()
                         else:
-                            step_func()
+                            result = step_func()
+                    return result
                 target = step_runner
             else:
                 target = func
 
             @wraps(func)
-            def wrapper() -> None:
+            def wrapper() -> Any:
                 self.history.append(cmd_name)
-                target()
+                return target()
 
             self.command_metadata[cmd_name] = {
                 'name': cmd_name,
@@ -73,12 +74,17 @@ class CommandManager:
                 self.animation.stop()
 
                 cmd_info = self.get_command_info(name)
-                desc = cmd_info.get('description', 'Команда') if cmd_info else 'Команда пользоваталя'
+                desc = cmd_info.get('description', 'Команда') if cmd_info else 'Команда пользователя'
 
                 if name == 'sheets' and isinstance(result, dict):
-                    print(f"{desc}. Обновлено записей: {result.get('updated', 0)}")
+                    print(f"{desc}. Выполнено успешно"
+                          f"\nОбновлено записей: {result.get('updated', 0)}")
                     if result.get('not_found'):
                         print(f"Тикеры не найдены в таблице: {', '.join(result['not_found'])}")
+                elif name == 'reports' and isinstance(result, dict):
+                    print(f"{desc}. Выполнено успешно"
+                          f"\nЗагружено новых отчетов: {result.get('updated_count', 0)}"
+                          f"\nВсего отчетов: {result.get('total_amount_files', 0)}")
                 else:
                     print(f"{desc}. Выполнено успешно")
 
