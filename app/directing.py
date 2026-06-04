@@ -1,30 +1,24 @@
-import os
-import platform
-from passwd.directories import LINUX1, WINDOWS1, WINDOWS2
+from pathlib import Path
+from app.config import BROKER_REPORT_DIR
 
 
-def get_directory() -> str:
+def get_directory() -> Path:
+    """Возвращает путь к директории для отчетов брокера"""
 
-    system = platform.system()
-
-    if system == 'Linux':
-        directory = LINUX1
-    elif system == 'Windows':
-        dir1 = WINDOWS1
-        dir2 = WINDOWS2
-
-        if os.path.isdir(dir1):
-            directory = dir1
-        elif os.path.isdir(dir2):
-            directory = dir2
-        else:
-            raise Exception('Директория отсутствует')
-
+    if BROKER_REPORT_DIR:
+        target_dir = Path(BROKER_REPORT_DIR).expanduser().resolve()
     else:
-        raise Exception('Пока не умею работать с данной ОС: ' + system)
+        target_dir = Path.home() / "Downloads" / "broker_report"
 
-    return directory
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        raise PermissionError(f"Нет прав на создание или запись в директорию: {target_dir}")
+    except OSError as e:
+        raise OSError(f"Ошибка файловой системы при работе с {target_dir}: {e}")
+
+    return target_dir
 
 
 if __name__ == '__main__':
-    get_directory()
+    print(f"Целевая директория: {get_directory()}")

@@ -8,7 +8,7 @@ from app.config import MAIL_PASSWORD, BROKERAGE_ACCOUNT_NUMBER, MAIL_USERNAME, I
 from app.directing import get_directory
 
 
-def write_broker_reports(imap: imaplib.IMAP4_SSL, directory: str, ext: str ='.html') -> None:
+def write_broker_reports(imap: imaplib.IMAP4_SSL, directory: str | Path, ext: str ='.html') -> None:
     status, data = imap.search(None, 'ALL')
     if status != 'OK': return
 

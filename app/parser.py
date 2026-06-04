@@ -7,7 +7,7 @@ from pathlib import Path
 from app.directing import get_directory
 
 
-def get_transactions(input_files: list[str], output_file: str,
+def get_transactions(input_files: list[str | Path], output_file: str,
                      header_flag=True):
 
     header = [
@@ -25,7 +25,7 @@ def get_transactions(input_files: list[str], output_file: str,
               reg_table_finish, stopwords_list, header_flag)
 
 
-def get_cashflow(input_files: list[str], output_file: str, header_flag=True):
+def get_cashflow(input_files: list[str | Path], output_file: str, header_flag=True):
 
     header = [
         'Дата', 'Торговая площадка', 'Описание операции',
@@ -40,7 +40,7 @@ def get_cashflow(input_files: list[str], output_file: str, header_flag=True):
               reg_table_finish, stopwords_list, header_flag)
 
 
-def get_securities_movement(input_files: list[str], output_file: str,
+def get_securities_movement(input_files: list[str | Path], output_file: str,
                             header_flag=True):
 
     header = [
@@ -107,14 +107,14 @@ def my_writer(input_files, output_file, header, reg_table_start,
             header_flag = False
 
 
-def parse_directory(directory: str):
+def parse_directory(directory: str | Path):
     return [f'{directory}{node}' for node in sorted(os.listdir(directory))]
 
 
 def launch_parser():
 
-    directory: str = get_directory()
-    paths: list[str] = parse_directory(directory)
+    directory: str | Path = get_directory()
+    paths: list[str | Path] = parse_directory(directory)
     out_file_1 = 'files/transactions.csv'
     out_file_2 = 'files/cashflow.csv'
     out_file_3 = 'files/securities_move.csv'

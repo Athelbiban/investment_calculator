@@ -13,7 +13,7 @@ REM Активация виртуальной среды
 call "%PROJECT_DIR%\%VENV_NAME%\Scripts\activate.bat"
 
 REM Запуск основного скрипта
-python main.py
+python InvestmentCalculator.py
 
 REM Деактивация виртуальной среды
 call deactivate

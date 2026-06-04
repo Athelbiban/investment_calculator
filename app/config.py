@@ -51,3 +51,8 @@ SERVICE_ACCOUNT_FILE: str = _require_file('SERVICE_ACCOUNT_FILE')
 CSV_FILE: str = _require_file('CSV_FILE')
 SPREADSHEET_ID: str = _require_str('SPREADSHEET_ID')
 WORKSHEET_NAME: str = _require_str('WORKSHEET_NAME')
+
+# =========================================
+# BROKER REPORT DIR
+# =========================================
+BROKER_REPORT_DIR: str | None = os.getenv('BROKER_REPORT_DIR')
