@@ -30,13 +30,14 @@ class CommandManager:
 
             if steps:
                 def step_runner(captured_steps=steps):
+                    steps_result = {}
                     for msg, step_func in captured_steps:
                         if self.animation:
                             with self.animation.status_context(msg):
-                                result = step_func()
+                                steps_result[msg] = step_func()
                         else:
-                            result = step_func()
-                    return result
+                            steps_result[msg] = step_func()
+                    return steps_result
                 target = step_runner
             else:
                 target = func
@@ -81,10 +82,21 @@ class CommandManager:
                           f"\nОбновлено записей: {result.get('updated', 0)}")
                     if result.get('not_found'):
                         print(f"Тикеры не найдены в таблице: {', '.join(result['not_found'])}")
+
                 elif name == 'reports' and isinstance(result, dict):
                     print(f"{desc}. Выполнено успешно"
                           f"\nЗагружено новых отчетов: {result.get('updated_count', 0)}"
                           f"\nВсего отчетов: {result.get('total_amount_files', 0)}")
+
+                elif name == 'csv' and isinstance(result, dict):
+                    parser_result = result.get('Обработка отчетов') or result.get('Обработка отчетов', {})
+                    if isinstance(parser_result, dict):
+                        print(f"{desc}. Выполнено успешно"
+                              f"\nТранзакции: {parser_result.get('transactions', 0)} строк"
+                              f"\nДвижение денежных средств: {parser_result.get('cashflow', 0)} строк"
+                              f"\nДвижение ценных бумаг: {parser_result.get('securities', 0)} строк")
+                    else:
+                        print(f"{desc}. Выполнено успешно")
                 else:
                     print(f"{desc}. Выполнено успешно")
 

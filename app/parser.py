@@ -1,133 +1,121 @@
 import csv
-import os
 import re
-
-from bs4 import BeautifulSoup, element
 from pathlib import Path
+from typing import Any
+from bs4 import BeautifulSoup
 from app.directing import get_directory
 
 
-def get_transactions(input_files: list[str | Path], output_file: str,
-                     header_flag=True):
+_REG_NUMBERS = re.compile(r"(\d+)*\s*(\d+)\s+(\d+(?:\.\d+)?)")
 
-    header = [
-        'Дата заключения', 'Дата расчетов', 'Время заключения', 'Наименование',
-        'Код', 'Валюта', 'Вид', 'Количество', 'Цена', 'Сумма', 'НКД',
-        'Комиссия Брокера', 'Комиссия Биржи', 'Номер сделки',
-        'Комментарий', 'Статус'
-    ]
+def _clean_text(text: str) -> str:
+    """Убирает пробелы внутри чисел, например, '12 345 678.91' -> '12345678.91'"""
+    return _REG_NUMBERS.sub(r"\1\2\3", text.strip())
 
-    reg_table_start = re.compile(r'Сделки купли/продажи')
-    reg_table_finish = re.compile(r'Итого, RUB')
-    stopwords_list = ['Дата заключения', 'Площадка: Фондовый рынок', '1']
+def _extract_table_data(
+        html_content: str,
+        start_re: re.Pattern,
+        finish_re: re.Pattern,
+        stopwords: set[str]
+) -> list[list[str]]:
+    """Извлекает строки таблицы из HTML-контента"""
+    soup = BeautifulSoup(html_content, 'lxml')
+    rows = []
+    in_table = False
 
-    my_writer(input_files, output_file, header, reg_table_start,
-              reg_table_finish, stopwords_list, header_flag)
+    for tag in soup.select("tr, p"):
+        tag_text = tag.get_text(strip=True)
 
+        if start_re.search(tag_text):
+            in_table = True
+            continue
+        if finish_re.search(tag_text):
+            in_table = False
+            continue
 
-def get_cashflow(input_files: list[str | Path], output_file: str, header_flag=True):
+        if in_table:
+            cells = tag.find_all("td")
+            if not cells:
+                continue
 
-    header = [
-        'Дата', 'Торговая площадка', 'Описание операции',
-        'Валюта', 'Сумма зачисления', 'Сумма списания'
-    ]
+            if cells[0].get_text(strip=True) in stopwords:
+                continue
 
-    reg_table_start = re.compile(r'Движение денежных средств за период')
-    reg_table_finish = re.compile(r'Итого, RUB')
-    stopwords_list = ['Дата', '1']
+            rows.append([_clean_text(cell.get_text()) for cell in cells])
 
-    my_writer(input_files, output_file, header, reg_table_start,
-              reg_table_finish, stopwords_list, header_flag)
+    return rows
 
+def _write_csv(output_path: Path, headers: list[str], data_rows: list[list[str]]) -> int:
+    """Записывает данные в CSV и возвращает количество строк"""
+    with open(output_path, 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        writer.writerows(data_rows)
+    return len(data_rows)
 
-def get_securities_movement(input_files: list[str | Path], output_file: str,
-                            header_flag=True):
+def parse_reports(directory: Path | None = None) -> dict[str, Any]:
+    """Парсит HTML-отчеты брокера, сохраняет в CSV и возвращает статистику"""
+    target_dir = directory or get_directory()
+    html_files = sorted(target_dir.glob("*.html"))
 
-    header = [
-        'Дата операции', 'Наименование ЦБ', 'Код ЦБ', 'Вид',
-        'Основание операции', 'Количество, шт', 'Дата приобретения', 'Цена',
-        'Комиссия Брокера, руб', 'Комиссия Биржи, руб', 'Другие затраты'
-    ]
+    if not html_files:
+        return {'transactions': 0, 'cashflow': 0, 'securities': 0, 'message': 'HTML-файлы не найдены'}
 
-    reg_table_start = re.compile(
-        r'Движение ЦБ, не связанное с исполнением сделок'
-    )
-    reg_table_finish = re.compile(r'Итого по площадке Фондовый рынок')
-    stopwords_list = ['', 'Дата операции', '1', 'Площадка: Фондовый рынок']
+    output_dir = Path.home() / 'Downloads' / 'files'
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    my_writer(input_files, output_file, header, reg_table_start,
-              reg_table_finish, stopwords_list, header_flag)
+    configs = {
+        'transactions': {
+            'file': output_dir / 'transactions.csv',
+            'headers': ['Дата заключения', 'Дата расчетов', 'Время заключения', 'Наименование',
+                        'Код', 'Валюта', 'Вид', 'Количество', 'Цена', 'Сумма', 'НКД',
+                        'Комиссия Брокера', 'Комиссия Биржи', 'Номер сделки', 'Комментарий', 'Статус'],
+            'start': re.compile(r'Сделки купли/продажи'),
+            'finish': re.compile(r'Итого, RUB'),
+            'stopwords': {'Дата заключения', 'Площадка: Фондовый рынок', '1'}
+        },
+        'cashflow': {
+            'file': output_dir / 'cashflow.csv',
+            'headers': ['Дата', 'Торговая площадка', 'Описание операции',
+                        'Валюта', 'Сумма зачисления', 'Сумма списания'],
+            'start': re.compile(r'Движение денежных средств за период'),
+            'finish': re.compile(r'Итого, RUB'),
+            'stopwords': {'Дата', '1'}
+        },
+        'securities': {
+            'file': output_dir / 'securities_move.csv',
+            'headers': ['Дата операции', 'Наименование ЦБ', 'Код ЦБ', 'Вид',
+                        'Основание операции', 'Количество, шт', 'Дата приобретения', 'Цена',
+                        'Комиссия Брокера, руб', 'Комиссия Биржи, руб', 'Другие затраты'],
+            'start': re.compile(r'Движение ЦБ, не связанное с исполнением сделок'),
+            'finish': re.compile(r'Итого по площадке Фондовый рынок'),
+            'stopwords': {'', 'Дата операции', '1', 'Площадка: Фондовый рынок'}
+        }
+    }
 
+    result: dict[str, Any] = {}
+    for name, cfg in configs.items():
+        all_rows: list[list[str]] = []
+        for html_file in html_files:
+            content = html_file.read_text(encoding='utf-8')
+            all_rows.extend(_extract_table_data(content, cfg['start'], cfg['finish'], set(cfg['stopwords'])))
 
-def write_file(file: str, output_file: str, header: list[str],
-               reg_table_start: re.Pattern, reg_table_finish: re.Pattern,
-               reg_numbers: re.Pattern, stopwords_list: list[str],
-               header_flag: bool):
+        # result[name] = _write_csv(cfg['file'], cfg['headers'], all_rows)
+        with open(cfg['file'], 'w', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(cfg['headers'])
+            writer.writerows(all_rows)
 
-    with (open(file, encoding='utf-8') as inf,
-          open(output_file, 'a', encoding='utf-8', newline='') as ouf):
+        result[name] = len(all_rows)
 
-        writer = csv.writer(ouf)
-        soup: element.ResultSet = BeautifulSoup(
-            inf.read(), 'lxml').select('tr, p')
-        table_flag = False
+    result['message'] = 'Успешно'
+    return result
 
-        for element_Tag in soup:
-
-            if header_flag:
-                writer.writerow(header)
-                header_flag = False
-
-            if re.search(reg_table_start, element_Tag.text):
-                table_flag = True
-            elif re.search(reg_table_finish, element_Tag.text):
-                table_flag = False
-
-            if table_flag:
-                _resultSet: element.ResultSet = element_Tag.find_all('td')
-
-                if _resultSet and _resultSet[0].text not in stopwords_list:
-                    writer.writerow(re.sub(
-                        reg_numbers,
-                        elem.text.replace(' ', ''),
-                        elem.text
-                    ) for elem in _resultSet)
-
-
-def my_writer(input_files, output_file, header, reg_table_start,
-              reg_table_finish, stopwords_list, header_flag):
-
-    # Поиск пробелов в числе, например '1 504.24'
-    reg_numbers = re.compile(r'^\d+\s+\d+\s*\d*\.?\d*')
-
-    for file in input_files:
-        write_file(file, output_file, header, reg_table_start,
-                   reg_table_finish, reg_numbers, stopwords_list, header_flag)
-        if header_flag:
-            header_flag = False
-
-
-def parse_directory(directory: str | Path):
-    return [f'{directory}{node}' for node in sorted(os.listdir(directory))]
-
-
-def launch_parser():
-
-    directory: str | Path = get_directory()
-    paths: list[str | Path] = parse_directory(directory)
-    out_file_1 = 'files/transactions.csv'
-    out_file_2 = 'files/cashflow.csv'
-    out_file_3 = 'files/securities_move.csv'
-
-    for f in out_file_1, out_file_2, out_file_3:
-        Path(f).unlink(missing_ok=True)
-
-    os.makedirs('files', exist_ok=True)
-
-    get_transactions(paths, out_file_1)
-    get_cashflow(paths, out_file_2)
-    get_securities_movement(paths, out_file_3)
+def launch_parser() -> dict[str, Any]:
+    """Точка входа для CommandManager"""
+    return parse_reports()
 
 
 if __name__ == '__main__':
-    launch_parser()
+    report = launch_parser()
+    print(f"Готово. Отчет: {report}")
