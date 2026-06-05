@@ -63,9 +63,9 @@ class GSheetsUpdater:
             row = ticker_to_row.get(ticker)
             if row is not None:
                 cell_updates.extend([
-                    gspread.Cell(row, 5, str(qty)),
-                    gspread.Cell(row, 6, str(avg_price)),
-                    gspread.Cell(row, 7, str(commission))
+                    gspread.Cell(row, 5, qty),          # type: ignore[arg-type]
+                    gspread.Cell(row, 6, avg_price),    # type: ignore[arg-type]
+                    gspread.Cell(row, 7, commission)    # type: ignore[arg-type]
                 ])
                 updated_count += 1
             else:
