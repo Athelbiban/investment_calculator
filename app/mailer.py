@@ -58,7 +58,7 @@ def get_reports(animation: Optional[AnimationManager] = None) -> dict[str, int |
     try:
         imap.login(mail_username, mail_password)
         imap.select(IMAP_FOLDER)
-        result = write_broker_reports(imap, get_directory())
+        result = write_broker_reports(imap, get_directory('reports'))
         return result
     finally:
         try:

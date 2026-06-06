@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import requests
 import json
+from app.config import CSV_PORTFOLIO, CSV_TRANSACTIONS
 
 
 def fix_split(ticker_list, transactions, transactions_executed):
@@ -177,7 +178,7 @@ def get_coupon_data_dict(tickers: list):
 
 def build_general_portfolio():
 
-    transactions = pd.read_csv('files/transactions.csv') \
+    transactions = pd.read_csv(CSV_TRANSACTIONS) \
         .drop_duplicates(['Дата заключения', 'Время заключения', 'Статус', 'Номер сделки'])
     transactions['Дата заключения'] = \
         pd.to_datetime(transactions['Дата заключения'] + ' ' + transactions['Время заключения'], dayfirst=True)
@@ -213,7 +214,7 @@ def build_general_portfolio():
     main_df['P/L, руб.'] = round(main_df['Текущая цена'] - main_df['Средняя цена'] * main_df['Количество'], 2)
     main_df['P/L, %'] = ((main_df['Котировки'] + main_df['НКД']) * 100 / main_df['Средняя цена'] - 100).round(2)
 
-    main_df.to_csv(path_or_buf='files/portfolio_main.csv')
+    main_df.to_csv(path_or_buf=CSV_PORTFOLIO)
 
 
 if __name__ == '__main__':

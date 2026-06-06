@@ -1,9 +1,15 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from platformdirs import user_data_dir
 
 
 load_dotenv()
+
+# =========================================
+# ROOT PROJECT DIRECTORY
+# =========================================
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # =========================================
 # ХЕЛПЕРЫ ДЛЯ FAIL-FAST ВАЛИДАЦИИ
@@ -18,9 +24,25 @@ def _require_str(key: str) -> str:
 def _require_file(key: str) -> str:
     """Проверяет наличие пути к файлу и возвращает его, иначе вызывает исключение"""
     file_path = _require_str(key)
-    if not Path(file_path).exists():
+    path_obj = Path(file_path)
+    if not path_obj.is_absolute():
+        path_obj = PROJECT_ROOT / path_obj
+    if not path_obj.exists():
         raise EnvironmentError(f"[ERROR VALIDATION config.py] Файл '{file_path}' из переменной '{key}' не найден на диске")
-    return file_path
+    return str(path_obj)
+
+def _require_path(key: Path) -> Path:
+    """Проверяет наличие пути и возвращает его, иначе вызывает исключение"""
+    if not key or key == Path('.'):
+        raise EnvironmentError(f"[ERROR VALIDATION config.py] Не удалось определить наличие пути '{key}'")
+    return key
+
+# =========================================
+# APPDATA DIRECTORIES
+# =========================================
+APP_DATA_DIR: Path = _require_path(Path(user_data_dir('InvestmentCalculator', 'StasVostrov')))
+REPORTS_DIR: str | None = os.getenv('REPORTS_DIR')
+CSV_DIR: str | None = os.getenv('CSV_DIR')
 
 # =========================================
 # MAIL CONFIG
@@ -48,11 +70,13 @@ GSHEETS_SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 SERVICE_ACCOUNT_FILE: str = _require_file('SERVICE_ACCOUNT_FILE')
-CSV_FILE: str = _require_file('CSV_FILE')
 SPREADSHEET_ID: str = _require_str('SPREADSHEET_ID')
 WORKSHEET_NAME: str = _require_str('WORKSHEET_NAME')
 
 # =========================================
-# BROKER REPORT DIR
+# CSV-FILES CONFIG
 # =========================================
-BROKER_REPORT_DIR: str | None = os.getenv('BROKER_REPORT_DIR')
+CSV_PORTFOLIO: str = os.getenv('CSV_PORTFOLIO') or str(APP_DATA_DIR / 'csv' / 'portfolio.csv')
+CSV_TRANSACTIONS: str = os.getenv('CSV_TRANSACTIONS') or str(APP_DATA_DIR / 'csv' / 'transactions.csv')
+CSV_CASHFLOW: str = os.getenv('CSV_CASHFLOW') or str(APP_DATA_DIR / 'csv' / 'cashflow.csv')
+CSV_SECURITIES_MOVE: str = os.getenv('CSV_SECURITIES_MOVE') or str(APP_DATA_DIR / 'csv' / 'securities_move.csv')

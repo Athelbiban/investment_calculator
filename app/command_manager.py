@@ -110,10 +110,10 @@ class CommandManager:
                 print(f"\nОшибка: Лист '{WORKSHEET_NAME}' не найден в таблице. Проверьте .env")
                 input('\nНажмите Enter для продолжения...')
 
-            except Exception as e:
-                self.animation.stop()
-                print(f"\nНепредвиденная ошибка: {e}")
-                input('\nНажмите Enter для продолжения...')
+            # except Exception as e:
+            #     self.animation.stop()
+            #     print(f"\nНепредвиденная ошибка: {e}")
+            #     input('\nНажмите Enter для продолжения...')
 
 
     def get_command_info(self, name: str) -> dict[str, Any] | None:

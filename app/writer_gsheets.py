@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 from google.oauth2.service_account import Credentials
 from gspread.utils import ValueInputOption
-from app.config import SERVICE_ACCOUNT_FILE, SPREADSHEET_ID, WORKSHEET_NAME, CSV_FILE, GSHEETS_SCOPES
+from app.config import SERVICE_ACCOUNT_FILE, SPREADSHEET_ID, WORKSHEET_NAME, CSV_PORTFOLIO, GSHEETS_SCOPES
 
 
 def _read_csv(csv_path: str) -> dict[str, tuple[int, float, float]]:
@@ -40,7 +40,7 @@ class GSheetsUpdater:
 
     def update(self) -> dict[str, Any]:
         """Обновляет Google таблицу. Возвращает отчет о выполнении"""
-        portfolio_data = _read_csv(CSV_FILE)
+        portfolio_data = _read_csv(CSV_PORTFOLIO)
         if not portfolio_data:
             return {'updated': 0, 'not_found': [], 'message': 'CSV-файл пуст или не содержит валидных данных'}
 

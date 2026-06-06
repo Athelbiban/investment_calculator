@@ -1,15 +1,15 @@
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
-
 from ORM.drop_duplicates_cashflow import drop_duplicates_cashflow
 from ORM.connect_DB import get_db_url
+from app.config import CSV_CASHFLOW
 
 
 def insert_cashflow():
     db_url = get_db_url()
     engine = create_engine(db_url)
-    csv_file_path = "files/cashflow.csv"
+    csv_file_path = CSV_CASHFLOW
     df = pd.read_csv(csv_file_path)
     df = drop_duplicates_cashflow(df)
 

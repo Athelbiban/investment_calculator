@@ -2,12 +2,13 @@ import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from ORM.connect_DB import get_db_url
+from app.config import CSV_TRANSACTIONS
 
 
 def insert_transactions():
     db_url = get_db_url()
     engine = create_engine(db_url)
-    csv_file_path = "files/transactions.csv"
+    csv_file_path = CSV_TRANSACTIONS
     df = pd.read_csv(csv_file_path).drop_duplicates(['Статус', 'Номер сделки'])
 
     df.rename(columns={
