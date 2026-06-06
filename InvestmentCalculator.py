@@ -15,7 +15,7 @@ class InvestmentCalculator:
 
     def __init__(self):
         self._name = self.__class__.__name__
-        self.__version__ = '0.9.0'
+        self.__version__ = '0.9.1'
         self.__author__ = 'Stas Vostrov'
         self.animation: AnimationManager | None = AnimationManager()
         self.cmanager: CommandManager = CommandManager(self._name, self.animation)
@@ -54,7 +54,7 @@ class InvestmentCalculator:
         @self.cmanager.command('sheets', 'Обновление Google-таблицы', steps=[
             ('Внесение изменений в Google-таблицу', update_gsheets)
         ])
-        def run_sheets(): return update_gsheets()
+        def run_sheets(): pass
 
         @self.cmanager.command('exit', 'Завершение работы')
         def exit_program():

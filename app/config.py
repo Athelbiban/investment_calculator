@@ -1,3 +1,4 @@
+import sys
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -9,7 +10,10 @@ load_dotenv()
 # =========================================
 # ROOT PROJECT DIRECTORY
 # =========================================
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if getattr(sys, 'frozen', False):
+    PROJECT_ROOT = Path(sys.executable).parent
+else:
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # =========================================
 # ХЕЛПЕРЫ ДЛЯ FAIL-FAST ВАЛИДАЦИИ

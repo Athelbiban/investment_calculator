@@ -78,15 +78,33 @@ class CommandManager:
                 desc = cmd_info.get('description', 'Команда') if cmd_info else 'Команда пользователя'
 
                 if name == 'sheets' and isinstance(result, dict):
-                    print(f"{desc}. Выполнено успешно"
-                          f"\nОбновлено записей: {result.get('updated', 0)}")
-                    if result.get('not_found'):
-                        print(f"Тикеры не найдены в таблице: {', '.join(result['not_found'])}")
+                    result_dic = None
+                    for step_name, step_data in result.items():
+                        if isinstance(step_data, dict) and 'updated' in step_data:
+                            result_dic = step_data
+                            break
+
+                    if result_dic:
+                        print(f"{desc}. Выполнено успешно"
+                              f"\nОбновлено строк: {result_dic.get('updated', 0)}")
+                        if result_dic.get('not_found'):
+                            print(f"Тикеры не найдены в таблице: {', '.join(result_dic['not_found'])}")
+                    else:
+                        print(f"{desc}. Выполнено успешно")
 
                 elif name == 'reports' and isinstance(result, dict):
-                    print(f"{desc}. Выполнено успешно"
-                          f"\nЗагружено новых отчетов: {result.get('updated_count', 0)}"
-                          f"\nВсего отчетов: {result.get('total_amount_files', 0)}")
+                    result_dic = None
+                    for step_name, step_data in result.items():
+                        if isinstance(step_data, dict) and 'updated_count' in step_data:
+                            result_dic = step_data
+                            break
+
+                    if result_dic:
+                        print(f"{desc}. Выполнено успешно"
+                              f"\nЗагружено новых отчетов: {result_dic.get('updated_count', 0)}"
+                              f"\nВсего отчетов: {result_dic.get('total_amount_files', 0)}")
+                    else:
+                        print(f"{desc}. Выполнено успешно")
 
                 elif name == 'csv' and isinstance(result, dict):
                     parser_result = result.get('Обработка отчетов') or result.get('Обработка отчетов', {})
