@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Literal
-from app.config import REPORTS_DIR, CSV_DIR, APP_DATA_DIR
+from app.config import REPORTS_DIR, CSV_DIR, APP_DATA_DIR, LOGS_DIR
 
 
-DirectoryType = Literal['reports', 'csv']
+DirectoryType = Literal['reports', 'csv', 'logs']
 
 def get_directory(file_dir: DirectoryType = 'reports') -> Path:
     """
@@ -28,15 +28,20 @@ def get_directory(file_dir: DirectoryType = 'reports') -> Path:
         >>> get_directory('csv')
         PosixPath('home/user/.local/share/InvestmentCalculator/csv')
         WindowsPath('C:\\Users\\<User>\\AppData\\Local\\InvestmentCalculator\\csv')
+        >>> get_directory('logs')
+        PosixPath('home/user/.local/share/InvestmentCalculator/logs')
+        WindowsPath('C:\\Users\\<User>\\AppData\\Local\\InvestmentCalculator\\logs')
     """
 
     if file_dir == 'reports':
         raw_dir = REPORTS_DIR
     elif file_dir == 'csv':
         raw_dir = CSV_DIR
+    elif file_dir == 'logs':
+        raw_dir = LOGS_DIR
     else:
         raise ValueError(f"[НЕДОПУСТИМЫЙ АРГУМЕНТ] Передан аргумент: {file_dir}. "
-                         f"Возможные значения: 'reports', 'csv'")
+                         f"Возможные значения: 'reports', 'csv', 'logs'")
 
     if raw_dir:
         target_dir = Path(raw_dir).expanduser().resolve()
@@ -58,3 +63,4 @@ def get_directory(file_dir: DirectoryType = 'reports') -> Path:
 if __name__ == '__main__':
     print(f"Директория отчётов: {get_directory('reports')}")
     print(f"Директория CSV: {get_directory('csv')}")
+    print(f"Директория логов: {get_directory('logs')}")

@@ -44,9 +44,10 @@ def _require_path(key: Path) -> Path:
 # =========================================
 # APPDATA DIRECTORIES
 # =========================================
-APP_DATA_DIR: Path = _require_path(Path(user_data_dir('InvestmentCalculator', 'StasVostrov')))
+APP_DATA_DIR: Path = _require_path(Path(user_data_dir(appname='InvestmentCalculator', appauthor='StasVostrov')))
 REPORTS_DIR: str | None = os.getenv('REPORTS_DIR')
 CSV_DIR: str | None = os.getenv('CSV_DIR')
+LOGS_DIR: str | None = os.getenv('LOGS_DIR')
 
 # =========================================
 # MAIL CONFIG
@@ -84,3 +85,8 @@ CSV_PORTFOLIO: str = os.getenv('CSV_PORTFOLIO') or str(APP_DATA_DIR / 'csv' / 'p
 CSV_TRANSACTIONS: str = os.getenv('CSV_TRANSACTIONS') or str(APP_DATA_DIR / 'csv' / 'transactions.csv')
 CSV_CASHFLOW: str = os.getenv('CSV_CASHFLOW') or str(APP_DATA_DIR / 'csv' / 'cashflow.csv')
 CSV_SECURITIES_MOVE: str = os.getenv('CSV_SECURITIES_MOVE') or str(APP_DATA_DIR / 'csv' / 'securities_move.csv')
+
+# =========================================
+# LOGS-FILES CONFIG
+# =========================================
+APP_LOG: str = os.getenv('APP_LOG') or str(APP_DATA_DIR / 'logs' / 'app.log')

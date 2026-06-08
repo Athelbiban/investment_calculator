@@ -1,7 +1,10 @@
+import logging
 import sys
 from functools import partial
-
+from types import TracebackType
 from app.animation import AnimationManager
+from app.config import APP_LOG
+from app.logger import AppLogger
 from app.mailer import get_reports
 from app.parser import launch_parser
 from ORM.create_DB import recreate_database
@@ -15,11 +18,13 @@ class InvestmentCalculator:
 
     def __init__(self):
         self._name = self.__class__.__name__
-        self.__version__ = '0.9.1'
+        self.__version__ = '0.10.0'
         self.__author__ = 'Stas Vostrov'
+        self.logger = AppLogger(self._name)
         self.animation: AnimationManager | None = AnimationManager()
         self.cmanager: CommandManager = CommandManager(self._name, self.animation)
         self._register_commands()
+        self.logger.info(f"Приложение {self._name} v{self.__version__} запущено")
 
     def _register_commands(self):
         """Регистрирует все команды"""
@@ -77,6 +82,27 @@ class InvestmentCalculator:
         self.heading()
         while True:
             self.cmanager.execute(input('\nВведите команду\n> ').strip().lower())
+
+
+def _global_exception_handler(exc_type: type[BaseException],
+                              exc_value: BaseException,
+                              exc_traceback: TracebackType | None
+                              ) -> None:
+    """Глобальный перехватчик фатальных ошибок"""
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger = logging.getLogger("InvestmentCalculator")
+    logger.critical("[КРИТИЧЕСКАЯ ОШИБКА ПРИЛОЖЕНИЯ]", exc_info=(exc_type, exc_value, exc_traceback))
+
+    print("\n" + "="*60)
+    print("Произошла критическая ошибка приложения")
+    print("="*60)
+    print(f"Подробности записаны в файл: {APP_LOG}")
+    input("Нажмите Enter для выхода...")
+
+sys.excepthook = _global_exception_handler
 
 
 if __name__ == '__main__':
