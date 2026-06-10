@@ -8,7 +8,7 @@ from app.logger import AppLogger
 from app.mailer import get_reports
 from app.parser import launch_parser
 from ORM.create_DB import recreate_database
-from app.portfolio_accountant import build_general_portfolio
+from app.portfolio_accountant import build_portfolio
 from app.command_manager import CommandManager
 from app.writer_gsheets import update_gsheets
 
@@ -18,7 +18,7 @@ class InvestmentCalculator:
 
     def __init__(self):
         self._name = self.__class__.__name__
-        self.__version__ = '0.10.0'
+        self.__version__ = '0.10.1'
         self.__author__ = 'Stas Vostrov'
         self.logger = AppLogger(self._name)
         self.animation: AnimationManager | None = AnimationManager()
@@ -34,7 +34,7 @@ class InvestmentCalculator:
         @self.cmanager.command('all', 'Полное обновление', steps=[
             ('Загрузка отчетов из e-mail', fetch_reports),
             ('Обработка отчетов', launch_parser),
-            ('Создание csv-файлов', build_general_portfolio),
+            ('Создание csv-файлов', build_portfolio),
             ('Создание базы данных', recreate_database),
             ('Внесение изменений в Google-таблицу', update_gsheets)
         ])
@@ -47,7 +47,7 @@ class InvestmentCalculator:
 
         @self.cmanager.command('csv', 'Обновление csv-файлов', steps=[
             ('Обработка отчетов', launch_parser),
-            ('Создание csv-файлов', build_general_portfolio)
+            ('Создание csv-файлов', build_portfolio)
         ])
         def run_csv(): pass
 
