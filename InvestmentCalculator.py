@@ -18,7 +18,7 @@ class InvestmentCalculator:
 
     def __init__(self):
         self._name = self.__class__.__name__
-        self.__version__ = '0.10.1'
+        self.__version__ = '0.10.2'
         self.__author__ = 'Stas Vostrov'
         self.logger = AppLogger(self._name)
         self.animation: AnimationManager | None = AnimationManager()
