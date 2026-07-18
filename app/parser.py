@@ -9,9 +9,47 @@ from dataclasses import dataclass
 
 _REG_NUMBERS = re.compile(r"(\d+)*\s*(\d+)\s+(\d+(?:\.\d+)?)")
 
+# Маппинг ISIN в Наименовании на "Наименование" и "Код" для случаев, когда брокер в отчетах не возвращает код бумаги
+# как с Т-технологиями с 06.2026г.
+_KNOWN_SECURITIES_BY_ISIN: dict[str, tuple[str, str]] = {
+    'RU000A107UL4': ('Т-технологии', 'T')
+}
+
+# Индексы колонок для transaction
+_TRANSACTION_NAME_INDEX = 3
+_TRANSACTION_CODE_INDEX = 4
+
+
 def _clean_text(text: str) -> str:
     """Убирает пробелы внутри чисел, например, '12 345 678.91' -> '12345678.91'"""
     return _REG_NUMBERS.sub(r"\1\2\3", text.strip())
+
+def _validate_transaction_row(row: list[str], row_index: int) -> list[str]:
+    """
+    Валидирует строку транзакции и подставляет известные значения для пустых кодов
+
+    :param row: строка транзакции (список ячеек)
+    :param row_index: номер строки для сообщения об ошибке
+    :return: валидированная строка (мутирует входной список)
+    :raise: ValueError: если Код пустой и Наименование не найдено в маппинге
+    """
+
+    code = row[_TRANSACTION_CODE_INDEX].strip()
+    name = row[_TRANSACTION_NAME_INDEX].strip()
+
+    if not code:
+        if name in _KNOWN_SECURITIES_BY_ISIN:
+            new_name, new_code = _KNOWN_SECURITIES_BY_ISIN[name]
+            row[_TRANSACTION_NAME_INDEX] = new_name
+            row[_TRANSACTION_CODE_INDEX] = new_code
+        else:
+            raise ValueError(
+                f"Обнаружена транзакция с пустым кодом (строка {row_index})\n"
+                f"Наименование: '{name}'\n"
+                f"Добавьте маппинг в _KNOWN_SECURITIES_BY_ISIN или проверьте отчет брокера\n"
+            )
+
+    return row
 
 def _extract_table_data(
         html_content: str,
@@ -109,7 +147,13 @@ def parse_reports(directory: Path | None = None) -> dict[str, Any]:
         all_rows: list[list[str]] = []
         for html_file in html_files:
             content = html_file.read_text(encoding='utf-8')
-            all_rows.extend(_extract_table_data(content, cfg.start, cfg.finish, cfg.stopwords))
+            rows = _extract_table_data(content, cfg.start, cfg.finish, set(cfg.stopwords))
+
+            if name == 'transactions':
+                for i, row in enumerate(rows, start=1):
+                    _validate_transaction_row(row, i)
+
+            all_rows.extend(rows)
 
         result[name] = _write_csv(cfg.file, cfg.headers, all_rows)
 
