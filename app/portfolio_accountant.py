@@ -4,6 +4,22 @@ from app.moex_client import MoexClient
 from app.portfolio_calculator import calculate_stock_metrics, apply_splits_and_replacements, get_rounding_precision
 
 
+def select_executed_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
+    """
+    Отбирает исполненные сделки по номеру сделки.
+
+    Брокер отдаёт одну и ту же операцию в разных стадиях обработки: например, 'ЗО' (заявка),
+    'ЗИ' и 'И' (исполнение). Если по номеру сделки есть строка со статусом 'И', оставляем её,
+    иначе - со статусом 'ЗИ'. Хронологический порядок входного DataFrame сохраняется.
+    """
+
+    executed = transactions[transactions['Статус'].isin(['И', 'ЗИ'])]
+    priority = executed['Статус'].map({'И': 0, 'ЗИ': 1})
+    best_priority = priority.groupby(executed['Номер сделки']).transform('min')
+    executed = executed[priority == best_priority]
+    return executed.drop_duplicates('Номер сделки', keep='first')
+
+
 def build_portfolio() -> None:
     """Рассчитывает портфель по транзакциям из файла transactions.csv и сохраняет его в файл portfolio.csv"""
 
@@ -22,7 +38,7 @@ def build_portfolio() -> None:
                     .sort_values('Дата заключения')
                     .reset_index(drop=True))
 
-    transactions_executed = transactions[transactions['Статус'] == 'И']
+    transactions_executed = select_executed_transactions(transactions)
     ticker_list = list(transactions_executed['Код'].unique())
 
     # 2. Применение сплитов и замен

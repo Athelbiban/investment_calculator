@@ -93,7 +93,7 @@ def apply_splits_and_replacements(
 
     :param tickers: список строк тикеров
     :param transactions_df: DataFrame Pandas со всеми транзакциями
-    :param transaction_executed_df: DataFrame Pandas с исполненными транзакциями (статус 'И')
+    :param transaction_executed_df: DataFrame Pandas с исполненными транзакциями (статусы 'И' / 'ЗИ')
     :return: возвращает список с замененными тикерами и учтенными сплитами
     """
 
