@@ -7,7 +7,7 @@ from app.config import APP_LOG
 from app.logger import AppLogger
 from app.mailer import get_reports
 from app.parser import launch_parser
-from ORM.create_DB import recreate_database
+from ORM.create_DB import sync_database
 from app.portfolio_accountant import build_portfolio
 from app.command_manager import CommandManager
 from app.writer_gsheets import update_gsheets
@@ -18,7 +18,7 @@ class InvestmentCalculator:
 
     def __init__(self):
         self._name = self.__class__.__name__
-        self.__version__ = '0.11.2'
+        self.__version__ = '0.11.0'
         self.__author__ = 'Stas Vostrov'
         self.logger = AppLogger(self._name)
         self.animation: AnimationManager | None = AnimationManager()
@@ -35,7 +35,7 @@ class InvestmentCalculator:
             ('Загрузка отчетов из e-mail', fetch_reports),
             ('Обработка отчетов', launch_parser),
             ('Создание csv-файлов', build_portfolio),
-            ('Создание базы данных', recreate_database),
+            ('Обновление базы данных', sync_database),
             ('Внесение изменений в Google-таблицу', update_gsheets)
         ])
         def run_all(): pass
@@ -52,7 +52,7 @@ class InvestmentCalculator:
         def run_csv(): pass
 
         @self.cmanager.command('db', 'Обновление базы данных', steps=[
-            ('Создание базы данных', recreate_database)
+            ('Обновление базы данных', sync_database)
         ])
         def run_db(): pass
 
