@@ -31,6 +31,8 @@ def calculate_stock_metrics_test(transactions: list[tuple[str, int, float,float,
             elif amount == 0:
                 total_commission = 0
                 total_cost = 0
+                # avg_price_with_commission = 0
+                # avg_price_without_commission = 0
             else:
                 raise ValueError(f"Количество ценных бумаг не может быть <0: {amount}")
 
@@ -45,6 +47,12 @@ def calculate_stock_metrics_test(transactions: list[tuple[str, int, float,float,
 
 
 if __name__ == '__main__':
-    lst_1 = [('Покупка', 10, 1000, 5, 5), ('Продажа', 5, 500, 2, 3)]
+    lst_1 = [
+        ('Покупка', 10, 1000, 5, 5),
+        ('Продажа', 5, 500, 2, 3),
+        ('Покупка', 5, 500, 2, 3),
+        ('Продажа', 10, 1000, 5, 5),
+        ('Покупка', 10, 1000, 5, 5),
+    ]
     res = calculate_stock_metrics_test(lst_1)
     print(res)

@@ -53,28 +53,26 @@ def calculate_stock_metrics(transactions: list[tuple[str, int, float,float, floa
     amount = 0
     total_cost = 0.0
     total_commission = 0.0
-    avg_price_with_commission = 0.0
-    avg_price_without_commission = 0.0
+    avg_price = 0.0
 
     for tx_type, qty, total, broker_comm, exchange_comm in transactions:
         commission = broker_comm + exchange_comm
 
         if tx_type == 'Покупка':
             amount += qty
-            total_cost += total
+            total_cost += total + commission
             total_commission += commission
-            avg_price_without_commission = total_cost / amount
-            avg_price_with_commission = (total_cost + total_commission) / amount
+            avg_price = total_cost / amount
+
         elif tx_type == 'Продажа':
             amount -= qty
-
             if amount > 0:
-                total_cost = amount * avg_price_without_commission
+                total_cost = amount * avg_price
                 total_commission += commission
-                avg_price_with_commission = (total_cost + total_commission) / amount
             elif amount == 0:
                 total_commission = 0
                 total_cost = 0
+                avg_price = 0
             else:
                 raise ValueError(f"Количество ценных бумаг не может быть <0: {amount}")
 
@@ -83,7 +81,7 @@ def calculate_stock_metrics(transactions: list[tuple[str, int, float,float, floa
 
     return StockData(
         amount=amount,
-        avg_price=avg_price_with_commission,
+        avg_price=avg_price,
         commission=total_commission
     )
 
